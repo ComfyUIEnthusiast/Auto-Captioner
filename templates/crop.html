@@ -23,13 +23,13 @@
             overflow: hidden;
             user-select: none;
             width: 100%;
-            max-width: 1000px;
+            max-width: none;
         }
 
         #videoElement {
             display: block;
             max-width: 100%;
-            max-height: calc(100vh - 600px);
+            max-height: calc(100vh - 320px);
             width: auto;
             height: auto;
         }
@@ -56,30 +56,43 @@
         /* Three-column layout for crop editor */
         .crop-editor-layout {
             display: flex;
-            gap: 20px;
-            max-width: 1400px;
+            gap: 10px;
             width: 100%;
             align-items: flex-start;
             justify-content: center;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Override container constraints on crop page */
+        .container {
+            max-width: none;
+            padding: 10px 15px;
+        }
+
+        .container > h1,
+        .container > div[style*="justify-content"] {
+            max-width: none;
         }
 
         .crop-editor-left {
-            flex: 0 0 220px;
+            flex: 0 0 180px;
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
 
         .crop-editor-center {
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 1000px;
+            padding: 0 10px;
         }
 
         .crop-editor-right {
-            flex: 0 0 200px;
+            flex: 0 0 160px;
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -268,9 +281,8 @@
         /* Video Timeline */
         .video-timeline {
             width: 100%;
-            max-width: 1000px;
-            margin: 10px 0;
-            padding: 10px 0;
+            margin: 5px 0;
+            padding: 5px 0;
         }
 
         .timeline-container {
@@ -562,7 +574,7 @@
     <div class="container">
         <a href="/" class="back-link">← Back to Upload</a>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1400px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <h1>✂️ Crop & Process Video</h1>
             <button class="help-btn" id="helpBtn">❓ Help</button>
         </div>
@@ -571,6 +583,7 @@
         <div class="help-content" id="helpContent">
             <p><strong>1. Select crop area:</strong> Click and drag on the video to select the crop region. Use resize handles (corners & edges) to adjust.</p>
             <p><strong>2. Set In/Out markers:</strong> Play the video and press <kbd>I</kbd> to set In point, <kbd>O</kbd> to set Out point. Only the selected segment will be processed.</p>
+            <p><strong>Jump to markers:</strong> Press <kbd>Shift</kbd>+<kbd>I</kbd> to jump playhead to In point, <kbd>Shift</kbd>+<kbd>O</kbd> to jump to Out point.</p>
             <p><strong>3. Choose output resolution:</strong> Select a preset or enter custom resolution on the left panel.</p>
             <p><strong>Navigate:</strong> Click the timeline, or use keyboard: <kbd>←</kbd> <kbd>→</kbd> seek ±5s, <kbd>Space</kbd> play/pause, <kbd>j</kbd>/<kbd>k</kbd> seek ±3s slowly, <kbd>,</kbd>/<kbd>.</kbd> seek ±1 frame.</p>
         </div>
@@ -610,10 +623,10 @@
                 <div class="control-group">
                     <label>Aspect Ratio</label>
                     <div class="ratio-buttons">
-                        <button class="ratio-btn active" data-ratio="free">Free</button>
+                        <button class="ratio-btn" data-ratio="free">Free</button>
                         <button class="ratio-btn" data-ratio="16:9">16:9</button>
                         <button class="ratio-btn" data-ratio="4:3">4:3</button>
-                        <button class="ratio-btn" data-ratio="1:1">1:1</button>
+                        <button class="ratio-btn active" data-ratio="1:1">1:1</button>
                         <button class="ratio-btn" data-ratio="9:16">9:16</button>
                     </div>
                 </div>
@@ -622,7 +635,7 @@
                 <div class="control-group">
                     <label>Resolution Presets</label>
                     <div class="resolution-presets">
-                        <button class="preset-btn" data-w="512" data-h="512">512×512</button>
+                        <button class="preset-btn active" data-w="512" data-h="512">512×512</button>
                         <button class="preset-btn" data-w="684" data-h="384">684×384</button>
                         <button class="preset-btn" data-w="384" data-h="684">384×684</button>
                         <button class="preset-btn" id="customResBtn">Custom...</button>
@@ -644,11 +657,11 @@
                 <div class="control-group">
                     <label>Output FPS</label>
                     <div class="custom-res">
-                        <input type="number" id="outputFps" placeholder="FPS" min="1" max="120" step="0.1" value="">
+                        <input type="number" id="outputFps" placeholder="FPS" min="1" max="120" step="0.1" value="24">
                         <button class="preset-btn" id="applyFps" style="padding: 4px 10px;">✓</button>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <div class="value" id="fpsDisplay" style="font-size: 0.9rem;">Original</div>
+                        <div class="value" id="fpsDisplay" style="font-size: 0.9rem;">24</div>
                         <div class="value" id="outputFramesDisplay" style="font-size: 0.9rem; color: #888;">Frames: --</div>
                     </div>
                 </div>
@@ -781,6 +794,34 @@
         let videoFps = 30;
         let outputFps = null;
 
+        // Auto-select defaults: 1:1 ratio, 512x512 preset, 24 FPS
+        function autoSelectDefaults() {
+            // Check if 1:1 ratio button is marked active in HTML
+            const activeRatio = document.querySelector('.ratio-btn.active');
+            if (activeRatio) {
+                aspectRatio = parseFloat(activeRatio.dataset.ratio.replace(':', '/'));
+                // Fix: 1:1 -> 1/1 = 1
+                const parts = activeRatio.dataset.ratio.split(':');
+                aspectRatio = parseInt(parts[0]) / parseInt(parts[1]);
+            }
+
+            // Check if 512x512 preset is marked active in HTML
+            const activePresetBtn = document.querySelector('.preset-btn[data-w].active');
+            if (activePresetBtn) {
+                targetWidth = parseInt(activePresetBtn.dataset.w);
+                targetHeight = parseInt(activePresetBtn.dataset.h);
+                activePreset = `${targetWidth}×${targetHeight}`;
+            }
+
+            // Check if 24 FPS is set in input
+            const fpsInput = document.getElementById('outputFps');
+            if (fpsInput && fpsInput.value === '24') {
+                outputFps = 24;
+                document.getElementById('fpsDisplay').textContent = '24 fps';
+                updateOutputFrames();
+            }
+        }
+
         // Initialize overlay size
         function initOverlay() {
             const rect = videoElement.getBoundingClientRect();
@@ -791,6 +832,9 @@
             displayScale = rect.width / videoElement.videoWidth;
             positionCanvas();
             drawOverlay();
+            
+            // Auto-select defaults after overlay is ready
+            autoSelectDefaults();
         }
 
         function positionCanvas() {
@@ -1022,46 +1066,109 @@
             const minSize = 20;
 
             if (aspectRatio) {
-                const centerX = crop.x + crop.width / 2;
-                const centerY = crop.y + crop.height / 2;
+                // Save original bounds
+                const origX = crop.x;
+                const origY = crop.y;
+                const origW = crop.width;
+                const origH = crop.height;
 
-                let dx, dy;
+                // Save raw mouse coords before clamping (needed by all handlers)
+                const rawX = x;
+                const rawY = y;
+
+                // Clamp x,y to video bounds
+                x = Math.max(0, Math.min(x, videoWidth));
+                y = Math.max(0, Math.min(y, videoHeight));
+
+                let newW, newH;
+
                 switch (resizeHandle) {
-                    case 'se': dx = x - centerX; dy = y - centerY; break;
-                    case 'sw': dx = centerX - x; dy = y - centerY; break;
-                    case 'ne': dx = x - centerX; dy = centerY - y; break;
-                    case 'nw': dx = centerX - x; dy = centerY - y; break;
-                    case 'n':  dx = 0; dy = centerY - y; break;
-                    case 's':  dx = 0; dy = y - centerY; break;
-                    case 'w':  dx = centerX - x; dy = 0; break;
-                    case 'e':  dx = x - centerX; dy = 0; break;
-                    default: dx = x - centerX; dy = y - centerY;
+                    case 'se':
+                        // Anchor: top-left, drag bottom-right
+                        newW = Math.max(minSize, x - origX);
+                        newH = newW / aspectRatio;
+                        if (origX + newW > videoWidth) { newW = videoWidth - origX; newH = newW / aspectRatio; }
+                        if (origY + newH > videoHeight) { newH = videoHeight - origY; newW = newH * aspectRatio; }
+                        crop.x = origX;
+                        crop.y = origY;
+                        break;
+                    case 'sw':
+                        // Anchor: top-right, drag bottom-left
+                        newW = Math.max(minSize, origX + origW - x);
+                        newH = newW / aspectRatio;
+                        if (newW > origX + origW) { newW = origX + origW; newH = newW / aspectRatio; }
+                        if (origY + newH > videoHeight) { newH = videoHeight - origY; newW = newH * aspectRatio; }
+                        crop.x = origX + origW - newW;
+                        crop.y = origY;
+                        break;
+                    case 'ne':
+                        // Anchor: bottom-left, drag top-right
+                        newW = Math.max(minSize, x - origX);
+                        newH = newW / aspectRatio;
+                        if (origX + newW > videoWidth) { newW = videoWidth - origX; newH = newW / aspectRatio; }
+                        if (newH > origY + origH) { newH = origY + origH; newW = newH * aspectRatio; }
+                        crop.x = origX;
+                        crop.y = origY + origH - newH;
+                        break;
+                    case 'nw':
+                        // Anchor: bottom-right, drag top-left
+                        newW = Math.max(minSize, origX + origW - x);
+                        newH = newW / aspectRatio;
+                        if (newW > origX + origW) { newW = origX + origW; newH = newW / aspectRatio; }
+                        if (newH > origY + origH) { newH = origY + origH; newW = newH * aspectRatio; }
+                        crop.x = origX + origW - newW;
+                        crop.y = origY + origH - newH;
+                        break;
+                    case 'e':
+                        // Right edge handle. Drag right → grow width. Height grows equally up/down from center.
+                        newW = rawX - origX;
+                        newH = newW / aspectRatio;
+                        if (newW < minSize || newH < minSize) { newW = minSize; newH = newW / aspectRatio; }
+                        // Clamp: right edge can't go past videoWidth
+                        if (origX + newW > videoWidth) { newW = videoWidth - origX; newH = newW / aspectRatio; }
+                        crop.x = origX;
+                        crop.y = origY + origH / 2 - newH / 2;
+                        break;
+                    case 'w':
+                        // Left edge handle. Drag left → grow width. Height grows equally up/down from center.
+                        newW = (origX + origW) - rawX;
+                        newH = newW / aspectRatio;
+                        if (newW < minSize || newH < minSize) { newW = minSize; newH = newW / aspectRatio; }
+                        // Clamp: left edge can't go below 0
+                        if (crop.x < 0 || (origX + origW - newW) < 0) { newW = origX + origW; newH = newW / aspectRatio; }
+                        crop.x = origX + origW - newW;
+                        crop.y = origY + origH / 2 - newH / 2;
+                        break;
+                    case 's':
+                        // Bottom edge handle. Drag down → grow height. Width grows equally left/right from center.
+                        newH = rawY - origY;
+                        newW = newH * aspectRatio;
+                        if (newH < minSize || newW < minSize) { newH = minSize; newW = newH * aspectRatio; }
+                        // Clamp: bottom edge can't go past videoHeight
+                        if (origY + newH > videoHeight) { newH = videoHeight - origY; newW = newH * aspectRatio; }
+                        crop.y = origY;
+                        crop.x = origX + origW / 2 - newW / 2;
+                        break;
+                    case 'n':
+                        // Top edge handle. Drag up → grow height. Width grows equally left/right from center.
+                        newH = (origY + origH) - rawY;
+                        newW = newH * aspectRatio;
+                        if (newH < minSize || newW < minSize) { newH = minSize; newW = newH * aspectRatio; }
+                        // Clamp: top edge can't go below 0
+                        if (rawY < 0) { newH = origY + origH; newW = newH * aspectRatio; }
+                        crop.y = origY + origH - newH;
+                        crop.x = origX + origW / 2 - newW / 2;
+                        break;
                 }
 
-                let halfW = Math.abs(dx);
-                let halfH = Math.abs(dy);
+                crop.width = newW;
+                crop.height = newH;
 
-                if (halfW / halfH > aspectRatio || halfH === 0) {
-                    halfW = Math.max(halfW, halfH * aspectRatio);
-                    halfH = halfW / aspectRatio;
-                } else {
-                    halfH = Math.max(halfH, halfW / aspectRatio);
-                    halfW = halfH * aspectRatio;
-                }
-
-                if (halfW < minSize / 2) {
-                    halfW = minSize / 2;
-                    halfH = halfW / aspectRatio;
-                }
-                if (halfH < minSize / 2) {
-                    halfH = minSize / 2;
-                    halfW = halfH * aspectRatio;
-                }
-
-                crop.width = halfW * 2;
-                crop.height = halfH * 2;
-                crop.x = centerX - halfW;
-                crop.y = centerY - halfH;
+                // Final clamp - only fix position, never shrink
+                if (crop.x < 0) { crop.y += crop.x / 2; crop.width -= crop.x; crop.x = 0; }
+                if (crop.y < 0) { crop.x += crop.y / 2; crop.height -= crop.y; crop.y = 0; }
+                if (crop.x + crop.width > videoWidth) crop.width = videoWidth - crop.x;
+                if (crop.y + crop.height > videoHeight) crop.height = videoHeight - crop.y;
             } else {
                 switch (resizeHandle) {
                     case 'se':
@@ -1125,10 +1232,18 @@
         }
 
         function constrainCrop() {
-            crop.x = Math.max(0, Math.min(crop.x, videoWidth - 1));
-            crop.y = Math.max(0, Math.min(crop.y, videoHeight - 1));
-            crop.width = Math.max(20, Math.min(crop.width, videoWidth - crop.x));
-            crop.height = Math.max(20, Math.min(crop.height, videoHeight - crop.y));
+            // Clamp crop to video bounds - ensure it never exceeds video dimensions
+            // Only clamp, never shrink. The switch cases already set correct values.
+            if (crop.x < 0) crop.x = 0;
+            if (crop.y < 0) crop.y = 0;
+            if (crop.x + crop.width > videoWidth) {
+                crop.width = videoWidth - crop.x;
+            }
+            if (crop.y + crop.height > videoHeight) {
+                crop.height = videoHeight - crop.y;
+            }
+            crop.width = Math.max(20, Math.min(crop.width, videoWidth));
+            crop.height = Math.max(20, Math.min(crop.height, videoHeight));
         }
 
         function finalizeCrop() {
@@ -1205,6 +1320,54 @@
                 }
             });
         });
+
+        // ====== HELPER: Get target preset display string ======
+        function targetPresetDisplay() {
+            if (activePreset) return activePreset;
+            if (targetWidth && targetHeight) return `${targetWidth}×${targetHeight}`;
+            return 'output';
+        }
+
+        // ====== ASPECT RATIO MISMATCH WARNING ======
+        let warningOverlayEl = null;
+
+        function showAspectRatioWarning(creatorRatio, targetRatio, targetLabel) {
+            if (!warningOverlayEl) {
+                warningOverlayEl = document.createElement('div');
+                warningOverlayEl.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(231, 76, 60, 0.95);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    z-index: 200;
+                    text-align: center;
+                    max-width: 400px;
+                    pointer-events: auto;
+                `;
+                videoWrapper.appendChild(warningOverlayEl);
+            }
+            const diffPercent = Math.abs((creatorRatio - targetRatio) / targetRatio * 100);
+            warningOverlayEl.innerHTML = `
+                ⚠️ Aspect ratio mismatch: Crop (${creatorRatio.toFixed(2)}) vs ${targetLabel} (${targetRatio.toFixed(2)}, ${diffPercent.toFixed(1)}% diff). Output will be letterboxed/pillarboxed.
+                <br><button id="dismissWarningBtn" style="margin-top: 8px; padding: 4px 12px; background: white; color: #e74c3c; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Dismiss</button>
+            `;
+            warningOverlayEl.style.display = 'block';
+            document.getElementById('dismissWarningBtn').addEventListener('click', () => {
+                warningOverlayEl.style.display = 'none';
+            });
+        }
+
+        function hideAspectRatioWarning() {
+            if (warningOverlayEl) {
+                warningOverlayEl.style.display = 'none';
+            }
+        }
 
         // ====== RESOLUTION PRESETS ======
         document.querySelectorAll('.preset-btn[data-w]').forEach(btn => {
@@ -1536,16 +1699,32 @@
                     showSkipIndicator('+1f');
                     break;
                 case 'i':
-                    e.preventDefault();
-                    inTime = videoElement.currentTime;
-                    updateMarkers();
-                    showSkipIndicator('I set');
+                    if (e.shiftKey) {
+                        e.preventDefault();
+                        if (inTime !== null) {
+                            videoElement.currentTime = inTime;
+                            showSkipIndicator('Go to I');
+                        }
+                    } else {
+                        e.preventDefault();
+                        inTime = videoElement.currentTime;
+                        updateMarkers();
+                        showSkipIndicator('I set');
+                    }
                     break;
                 case 'o':
-                    e.preventDefault();
-                    outTime = videoElement.currentTime;
-                    updateMarkers();
-                    showSkipIndicator('O set');
+                    if (e.shiftKey) {
+                        e.preventDefault();
+                        if (outTime !== null) {
+                            videoElement.currentTime = outTime;
+                            showSkipIndicator('Go to O');
+                        }
+                    } else {
+                        e.preventDefault();
+                        outTime = videoElement.currentTime;
+                        updateMarkers();
+                        showSkipIndicator('O set');
+                    }
                     break;
             }
         });
@@ -1562,6 +1741,23 @@
             if (crop.width <= 0 || crop.height <= 0) {
                 showStatus('Please select a crop region first.', 'error');
                 return;
+            }
+
+            // Check aspect ratio mismatch before applying crop
+            hideAspectRatioWarning();
+            if (targetWidth && targetHeight && aspectRatio) {
+                const creatorRatio = crop.width / crop.height;
+                const targetRatio = targetWidth / targetHeight;
+                const ratioDiff = Math.abs(creatorRatio - targetRatio) / targetRatio;
+
+                // Show warning if ratio difference is > 5%
+                if (ratioDiff > 0.05) {
+                    showAspectRatioWarning(creatorRatio, targetRatio, targetPresetDisplay());
+                    // Ask for confirmation
+                    if (!confirm(`Aspect ratio mismatch warning:\n\nCrop ratio: ${creatorRatio.toFixed(2)}\nOutput ratio: ${targetRatio.toFixed(2)} (${targetPresetDisplay()})\nDifference: ${(ratioDiff * 100).toFixed(1)}%\n\nThe output will be letterboxed/pillarboxed to fit the target resolution.\n\nDo you want to proceed?`)) {
+                        return;
+                    }
+                }
             }
 
             document.getElementById('processingOverlay').classList.add('active');

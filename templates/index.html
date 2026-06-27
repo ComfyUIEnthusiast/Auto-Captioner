@@ -210,7 +210,10 @@
             <!-- Videos List -->
             {% if videos %}
             <section class="videos-section">
-                <h2>Uploaded Videos</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <h2>Uploaded Videos</h2>
+                    <button class="btn btn-secondary" id="deleteAllBtn" style="padding: 6px 14px; font-size: 0.85rem; background: rgba(231,76,60,0.2); color: #e74c3c;">🗑️ Delete All</button>
+                </div>
                 <div class="video-grid">
                     {% for video in videos %}
                     <div class="video-card">
@@ -224,6 +227,7 @@
                             <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
                             <a href="/caption?file={{ video }}" class="edit-btn caption-btn">🤖 Caption</a>
                             <a href="/download/{{ video }}" class="download-btn">⬇️ Download</a>
+                            <button class="delete-video-btn" style="background: rgba(231,76,60,0.15); color: #e74c3c; padding: 6px 12px; border: 1px solid #e74c3c; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-top: 5px;" data-filename="{{ video }}">🗑️ Delete</button>
                         </div>
                     </div>
                     {% endfor %}
@@ -640,6 +644,37 @@
         document.querySelectorAll('#cropper-tab .video-card video').forEach((video) => {
             video.addEventListener('loadedmetadata', () => {
                 video.currentTime = 1;
+            });
+        });
+
+        // Delete all videos button
+        document.getElementById('deleteAllBtn')?.addEventListener('click', () => {
+            if (!confirm('Are you sure you want to delete ALL uploaded videos? This cannot be undone.')) {
+                return;
+            }
+            fetch('/delete_all', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    showStatus(data.message || 'All videos deleted!', data.error ? 'error' : 'success');
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(err => showStatus('Delete failed: ' + err.message, 'error'));
+        });
+
+        // Delete individual video buttons
+        document.querySelectorAll('.delete-video-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filename = btn.dataset.filename;
+                if (!confirm(`Are you sure you want to delete "${filename}"? This cannot be undone.`)) {
+                    return;
+                }
+                fetch('/delete/' + filename, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        showStatus(data.message || 'Video deleted!', data.error ? 'error' : 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    })
+                    .catch(err => showStatus('Delete failed: ' + err.message, 'error'));
             });
         });
     </script>

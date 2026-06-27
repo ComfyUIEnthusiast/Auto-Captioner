@@ -225,6 +225,30 @@ def download_video(filename):
     )
 
 
+# --- Delete uploaded video ---
+@app.route('/delete/<filename>', methods=['POST'])
+def delete_video(filename):
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        return jsonify({'success': True, 'message': f'{filename} deleted'})
+    return jsonify({'error': 'File not found'}), 404
+
+
+# --- Delete all uploaded videos ---
+@app.route('/delete_all', methods=['POST'])
+def delete_all_videos():
+    upload_dir = app.config['UPLOAD_FOLDER']
+    count = 0
+    if os.path.exists(upload_dir):
+        for f in os.listdir(upload_dir):
+            filepath = os.path.join(upload_dir, f)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+                count += 1
+    return jsonify({'success': True, 'deleted_count': count, 'message': f'{count} video(s) deleted'})
+
+
 # --- Serve uploaded videos for preview ---
 @app.route('/watch/<filename>')
 def watch_video(filename):

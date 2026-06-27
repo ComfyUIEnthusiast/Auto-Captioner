@@ -9,6 +9,3 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - OPENAI_URL=http://host.docker.internal:11434/v1
-      - SYSTEM_PROMPT_FILE=/config/system_prompt.txt
-    volumes:
-      - ./system_prompt.txt:/config/system_prompt.txt:ro
