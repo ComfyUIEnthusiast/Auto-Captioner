@@ -53,7 +53,21 @@ def api_config():
         'openai_url': Config.OPENAI_URL
     })
 
-# --- Crop page ---
+# --- Crop page (GET: render form) ---
+@app.route('/crop', methods=['GET'])
+def crop_page():
+    filename = request.args.get('file')
+    if not filename:
+        # Show video selection list
+        videos = get_video_files()
+        return render_template('crop.html', filename=None, videos=videos)
+    # Validate file exists
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'Video not found'}), 404
+    videos = get_video_files()
+    return render_template('crop.html', filename=filename, videos=videos)
+
 
 # --- Upload endpoint ---
 @app.route('/upload', methods=['POST'])
@@ -357,15 +371,21 @@ def analyze_video():
     if not api_url or not prompt or not frames:
         return jsonify({'error': 'Missing required parameters'}), 400
 
+    # Load the system prompt
+    system_prompt = Config.get_system_prompt()
+
     # Construct the OpenAI-compatible API request
     messages = []
-    content = []
 
-    # Add text part with prompt
-    content.append({
-        "type": "text",
-        "text": prompt
-    })
+    # Add system message if system prompt is configured
+    if system_prompt:
+        messages.append({
+            "role": "system",
+            "content": system_prompt
+        })
+
+    # Build user content with images and text prompt
+    content = []
 
     # Add image parts from frames
     for frame_b64 in frames:
@@ -375,6 +395,12 @@ def analyze_video():
                 "url": frame_b64
             }
         })
+
+    # Add text part with prompt
+    content.append({
+        "type": "text",
+        "text": prompt
+    })
 
     messages.append({
         "role": "user",
@@ -423,10 +449,44 @@ def analyze_video():
         return jsonify({'error': str(e)}), 500
 
 
+def purge_uploaded_videos():
+    """Remove all uploaded videos from the upload directory on launch."""
+    upload_dir = app.config['UPLOAD_FOLDER']
+    output_dir = app.config['OUTPUT_FOLDER']
+    
+    # Purge upload folder
+    if os.path.exists(upload_dir):
+        count = 0
+        for f in os.listdir(upload_dir):
+            filepath = os.path.join(upload_dir, f)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+                count += 1
+        if count > 0:
+            print(f"  Purged {count} uploaded video(s) from {upload_dir}")
+    else:
+        os.makedirs(upload_dir, exist_ok=True)
+    
+    # Purge output folder
+    if os.path.exists(output_dir):
+        count = 0
+        for f in os.listdir(output_dir):
+            filepath = os.path.join(output_dir, f)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+                count += 1
+        if count > 0:
+            print(f"  Purged {count} processed video(s) from {output_dir}")
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("  Video Tools App")
     print("=" * 60)
     print(f"  →  http://localhost:5000")
     print("=" * 60)
+    
+    # Purge old uploaded and processed videos on launch
+    purge_uploaded_videos()
+    
     app.run(debug=True, host='0.0.0.0', port=5000)
