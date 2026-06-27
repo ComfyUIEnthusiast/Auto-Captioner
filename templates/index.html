@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Tools</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Tab styles */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2a2a3e;
+        }
+
+        .tab-btn {
+            padding: 12px 30px;
+            background: #1a1a2e;
+            color: #888;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-right: 5px;
+        }
+
+        .tab-btn:hover {
+            background: #22223a;
+            color: #bbb;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Captioner specific styles */
+        .captioner-controls {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .captioner-controls label {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .captioner-controls input[type="text"],
+        .captioner-controls textarea {
+            width: 100%;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            margin-bottom: 15px;
+        }
+
+        .captioner-controls input[type="text"]:focus,
+        .captioner-controls textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .captioner-controls textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .captioner-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .caption-result {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .caption-result h3 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .caption-result pre {
+            background: #0f0f1a;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .caption-upload-section {
+            margin-bottom: 20px;
+        }
+
+        .caption-progress {
+            display: none;
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .caption-progress.active {
+            display: block;
+        }
+
+        .caption-progress .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .caption-progress p {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Video Tools</h1>
+            <p>Upload a video, crop it, or get AI analysis</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="cropper">🎬 Video Cropper</button>
+            <button class="tab-btn" data-tab="captioner">🤖 Video Captioner</button>
+        </div>
+
+        <!-- Tab 1: Video Cropper -->
+        <div class="tab-content active" id="cropper-tab">
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <h2>Drop your video here</h2>
+                    <p>or</p>
+                    <label class="browse-btn">
+                        Browse Files
+                        <input type="file" id="fileInput" accept="video/*" hidden>
+                    </label>
+                    <p class="formats">Supported: MP4, AVI, MOV, MKV, WebM, FLV, WMV</p>
+                </div>
+                <div class="upload-progress" id="uploadProgress" style="display:none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="progressText">Uploading...</p>
+                </div>
+            </section>
+
+            <!-- Videos List -->
+            {% if videos %}
+            <section class="videos-section">
+                <h2>Uploaded Videos</h2>
+                <div class="video-grid">
+                    {% for video in videos %}
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <video muted preload="metadata">
+                                <source src="/watch/{{ video }}" type="video/mp4">
+                            </video>
+                        </div>
+                        <div class="video-info">
+                            <p class="video-name">{{ video }}</p>
+                            <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
+                            <a href="/download/{{ video }}" class="download-btn">⬇️ Download</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+
+        <!-- Tab 2: Video Captioner -->
+        <div class="tab-content" id="captioner-tab">
+            <div class="captioner-controls">
+                <div class="caption-upload-section">
+                    <div class="upload-area" id="captionerUploadArea">
+                        <div class="upload-icon">📁</div>
+                        <h2>Drop your video here</h2>
+                        <p>or</p>
+                        <label class="browse-btn">
+                            Browse Files
+                            <input type="file" id="captionerFileInput" accept="video/*" hidden>
+                        </label>
+                        <p class="formats">Supported: MP4, AVI, MOV, MKV, WebM, FLV, WMV</p>
+                    </div>
+                    <div class="upload-progress" id="captionerUploadProgress" style="display:none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="captionerProgressFill"></div>
+                        </div>
+                        <p id="captionerProgressText">Uploading...</p>
+                    </div>
+                </div>
+
+                <label>OpenAI API URL</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="openaiUrl" value="http://host.docker.internal:11434/v1" placeholder="http://host.docker.internal:11434/v1" style="flex: 1;">
+                    <button class="btn btn-secondary" id="fetchModelsBtn" style="white-space: nowrap;">🔄 Fetch Models</button>
+                </div>
+
+                <label>Model</label>
+                <select id="modelSelect" style="width: 100%; background: #2a2a3e; border: 1px solid #444; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; margin-bottom: 15px;">
+                    <option value="">-- No models loaded --</option>
+                </select>
+
+                <label>Analysis Prompt</label>
+                <textarea id="analysisPrompt" placeholder="Describe what you want the AI to analyze or generate from the video frames...">Analyze this video and provide a detailed summary of the key events, objects, and actions shown.</textarea>
+
+                <div class="captioner-actions">
+                    <button class="btn btn-primary" id="analyzeBtn">🤖 Analyze Video</button>
+                    <button class="btn btn-secondary" id="downloadCaptionBtn" style="display:none;">⬇️ Download Caption</button>
+                </div>
+            </div>
+
+            <!-- Caption Progress -->
+            <div class="caption-progress" id="captionProgress">
+                <div class="spinner"></div>
+                <h3>Processing Video...</h3>
+                <p id="captionStatusText">Extracting frames...</p>
+            </div>
+
+            <!-- Caption Result -->
+            <div class="caption-result" id="captionResult">
+                <h3>AI Analysis Result</h3>
+                <pre id="captionResultText"></pre>
+                <div class="captioner-actions" style="margin-top: 15px;">
+                    <button class="btn btn-secondary" id="downloadCaptionBtn2" style="display:none;">⬇️ Download Caption as .txt</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // ========================
+        // Cropper Tab Upload Logic
+        // ========================
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const statusMessage = document.getElementById('statusMessage');
+
+        function setupDragDrop(area, fileInputEl, onFile) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                area.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            ['dragenter', 'dragover'].forEach(evt => {
+                area.addEventListener(evt, () => area.classList.add('drag-over'));
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                area.addEventListener(evt, () => area.classList.remove('drag-over'));
+            });
+            area.addEventListener('drop', (e) => {
+                if (e.dataTransfer.files.length > 0) onFile(e.dataTransfer.files[0]);
+            });
+            fileInputEl.addEventListener('change', () => {
+                if (fileInputEl.files.length > 0) onFile(fileInputEl.files[0]);
+            });
+        }
+
+        function handleCropperUpload(file) {
+            if (!file.type.startsWith('video/')) {
+                showStatus('Please select a valid video file.', 'error');
+                return;
+            }
+            uploadArea.style.display = 'none';
+            uploadProgress.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Uploading...';
+            const formData = new FormData();
+            formData.append('video', file);
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    progressFill.style.width = '100%';
+                    progressText.textContent = 'Upload complete!';
+                    showStatus(data.error || data.message || 'Upload complete!', data.error ? 'error' : 'success');
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(err => {
+                    showStatus('Upload failed: ' + err.message, 'error');
+                    uploadArea.style.display = 'block';
+                    uploadProgress.style.display = 'none';
+                });
+        }
+
+        setupDragDrop(uploadArea, fileInput, handleCropperUpload);
+
+        // ============================
+        // Captioner Tab Upload Logic
+        // ============================
+        const captionerUploadArea = document.getElementById('captionerUploadArea');
+        const captionerFileInput = document.getElementById('captionerFileInput');
+        const captionerUploadProgress = document.getElementById('captionerUploadProgress');
+        const captionerProgressFill = document.getElementById('captionerProgressFill');
+        const captionerProgressText = document.getElementById('captionerProgressText');
+        let captionerFilename = null;
+
+        function handleCaptionerUpload(file) {
+            if (!file.type.startsWith('video/')) {
+                showStatus('Please select a valid video file.', 'error');
+                return;
+            }
+            captionerUploadArea.style.display = 'none';
+            captionerUploadProgress.style.display = 'block';
+            captionerProgressFill.style.width = '0%';
+            captionerProgressText.textContent = 'Uploading...';
+            const formData = new FormData();
+            formData.append('video', file);
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    captionerProgressFill.style.width = '100%';
+                    captionerProgressText.textContent = 'Upload complete!';
+                    captionerFilename = data.filename;
+                    showStatus('Video uploaded successfully!', 'success');
+                })
+                .catch(err => {
+                    showStatus('Upload failed: ' + err.message, 'error');
+                    captionerUploadArea.style.display = 'block';
+                    captionerUploadProgress.style.display = 'none';
+                });
+        }
+
+        setupDragDrop(captionerUploadArea, captionerFileInput, handleCaptionerUpload);
+
+        // Fetch models button
+        document.getElementById('fetchModelsBtn').addEventListener('click', async () => {
+            const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
+            const modelSelect = document.getElementById('modelSelect');
+            try {
+                const response = await fetch(`${openaiUrl}/models`, { signal: AbortSignal.timeout(10000) });
+                const data = await response.json();
+                modelSelect.innerHTML = '';
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.id;
+                        modelSelect.appendChild(option);
+                    });
+                    modelSelect.value = modelSelect.options[0].value;
+                    showStatus(`Loaded ${data.data.length} models`, 'success');
+                } else {
+                    modelSelect.innerHTML = '<option value="">-- No models found --</option>';
+                    showStatus('No models found at this URL', 'error');
+                }
+            } catch (err) {
+                modelSelect.innerHTML = '<option value="">-- Failed to load models --</option>';
+                showStatus('Failed to connect. Check URL and port.', 'error');
+            }
+        });
+
+        let lastCaption = '';
+        let lastVideoName = '';
+
+        // Analyze button
+        document.getElementById('analyzeBtn').addEventListener('click', async () => {
+            if (!captionerFilename) {
+                showStatus('Please upload a video first.', 'error');
+                return;
+            }
+            const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
+            const prompt = document.getElementById('analysisPrompt').value.trim();
+            if (!prompt) {
+                showStatus('Please enter an analysis prompt.', 'error');
+                return;
+            }
+
+            const captionProgress = document.getElementById('captionProgress');
+            const captionResult = document.getElementById('captionResult');
+            const captionResultText = document.getElementById('captionResultText');
+            const captionStatusText = document.getElementById('captionStatusText');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            captionProgress.classList.add('active');
+            captionResult.style.display = 'none';
+            analyzeBtn.disabled = true;
+            captionStatusText.textContent = 'Extracting frames...';
+
+            try {
+                // Step 1: Extract 10 frames
+                const extractResponse = await fetch('/extract_frames', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: captionerFilename, num_frames: 10 })
+                });
+                const extractResult = await extractResponse.json();
+                if (extractResult.error) {
+                    throw new Error(extractResult.error);
+                }
+
+                captionStatusText.textContent = 'Sending to AI for analysis...';
+
+                // Step 2: Send to AI for analysis
+                const model = document.getElementById('modelSelect').value || 'default';
+                const analyzeResponse = await fetch('/analyze_video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        api_url: openaiUrl,
+                        model: model,
+                        filename: captionerFilename,
+                        frames: extractResult.frames,
+                        prompt: prompt
+                    })
+                });
+                const analyzeResult = await analyzeResponse.json();
+                if (analyzeResult.error) {
+                    throw new Error(analyzeResult.error);
+                }
+
+                captionStatusText.textContent = 'Complete!';
+                captionResultText.textContent = analyzeResult.response;
+                lastCaption = analyzeResult.response;
+                const baseName = captionerFilename ? captionerFilename.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '') : 'caption';
+                lastVideoName = baseName + '.txt';
+                captionResult.style.display = 'block';
+                document.getElementById('downloadCaptionBtn').style.display = 'inline-block';
+                document.getElementById('downloadCaptionBtn2').style.display = 'inline-block';
+                showStatus('Video analyzed successfully!', 'success');
+            } catch (err) {
+                showStatus('Analysis failed: ' + err.message, 'error');
+            } finally {
+                captionProgress.classList.remove('active');
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusMessage.textContent = msg;
+            statusMessage.className = 'status-message ' + type;
+            statusMessage.style.display = 'block';
+            setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
+        }
+
+        // Download caption buttons
+        document.getElementById('downloadCaptionBtn').addEventListener('click', () => {
+            downloadCaption();
+        });
+        document.getElementById('downloadCaptionBtn2').addEventListener('click', () => {
+            downloadCaption();
+        });
+
+        function downloadCaption() {
+            if (!lastCaption) return;
+            const blob = new Blob([lastCaption], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = lastVideoName || 'caption.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Load video thumbnails (cropper tab)
+        document.querySelectorAll('#cropper-tab .video-card video').forEach((video) => {
+            video.addEventListener('loadedmetadata', () => {
+                video.currentTime = 1;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  autotagger:
+    build: .
+    container_name: autotagger
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

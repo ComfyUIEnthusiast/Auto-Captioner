@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Video</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .crop-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .video-wrapper {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            user-select: none;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        #videoElement {
+            display: block;
+            max-width: 100%;
+            max-height: calc(100vh - 520px);
+            width: auto;
+            height: auto;
+        }
+
+        /* Crop overlay canvas sits on top of video */
+        #cropOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 20px 0 10px 0;
+            padding-left: 5px;
+            border-left: 3px solid #667eea;
+        }
+
+        .crop-controls {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .control-group {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 160px;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group .value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #2a2a3e;
+            color: #ccc;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .preview-section {
+            margin: 30px 0;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .preview-section h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .preview-box {
+            background: #1a1a2e;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .preview-box .label {
+            padding: 10px 15px;
+            background: #22223a;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .preview-box video {
+            width: 100%;
+            display: block;
+            background: #000;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .processing-overlay.active {
+            display: flex;
+        }
+
+        .processing-box {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #888;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #667eea;
+        }
+
+        .instructions {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .instructions p {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .instructions kbd {
+            background: #2a2a3e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+
+        .ratio-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ratio-btn {
+            padding: 6px 14px;
+            background: #2a2a3e;
+            color: #aaa;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .ratio-btn:hover {
+            background: #333350;
+        }
+
+        .ratio-btn.active {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        /* Video Timeline */
+        .video-timeline {
+            width: 100%;
+            max-width: 1000px;
+            margin: 10px 0;
+            padding: 10px 0;
+        }
+
+        .timeline-container {
+            position: relative;
+            width: 100%;
+            height: 40px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        #timelineCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .timeline-playhead {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #667eea;
+            pointer-events: none;
+            z-index: 10;
+            transition: left 0.05s linear;
+        }
+
+        .timeline-playhead::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -5px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+
+        /* In/Out markers on timeline */
+        .timeline-marker-in {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            border-left: 3px solid #2ecc71;
+            z-index: 8;
+            pointer-events: none;
+        }
+
+        .timeline-marker-in::before {
+            content: 'I';
+            position: absolute;
+            top: 2px;
+            left: -8px;
+            color: #2ecc71;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .timeline-marker-out {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            border-right: 3px solid #e74c3c;
+            z-index: 8;
+            pointer-events: none;
+        }
+
+        .timeline-marker-out::before {
+            content: 'O';
+            position: absolute;
+            top: 2px;
+            right: -8px;
+            color: #e74c3c;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .timeline-region {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background: rgba(46, 204, 113, 0.15);
+            border-top: 1px solid #2ecc71;
+            border-bottom: 1px solid #2ecc71;
+            z-index: 7;
+            pointer-events: none;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            padding: 0 5px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .time-display span {
+            font-size: 0.8rem;
+            color: #888;
+            font-family: monospace;
+        }
+
+        .time-display .time-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .time-display .time-center {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .time-display .time-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .marker-btn {
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+
+        .marker-btn.in-btn {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .marker-btn.out-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .marker-btn.active {
+            box-shadow: 0 0 0 2px #fff;
+        }
+
+        /* Skip display overlay on video */
+        .skip-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .skip-overlay.visible {
+            opacity: 1;
+        }
+
+        .resolution-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .preset-btn {
+            padding: 4px 10px;
+            background: #2a2a3e;
+            color: #aaa;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #333350;
+        }
+
+        .preset-btn.active {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .custom-res {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .custom-res input {
+            width: 60px;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .custom-res input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .custom-res span {
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .preview-grid { grid-template-columns: 1fr; }
+            .crop-controls { flex-direction: column; align-items: stretch; }
+            .control-group { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Upload</a>
+
+        <h1>✂️ Crop & Process Video</h1>
+
+        <div class="instructions">
+            <p>
+                <strong>1. Select crop area:</strong> Click and drag on the video to select the crop region. Use resize handles (corners & edges) to adjust.
+            </p>
+            <p>
+                <strong>2. Set In/Out markers:</strong> Play the video and press <kbd>I</kbd> to set In point, <kbd>O</kbd> to set Out point. Only the selected segment will be processed.
+            </p>
+            <p>
+                <strong>3. Choose resolution:</strong> Select a preset or enter custom output resolution.
+            </p>
+            <p style="margin-top: 8px;">
+                <strong>Navigate:</strong> Click the timeline, or use keyboard: <kbd>←</kbd> <kbd>→</kbd> seek ±5s, <kbd>Space</kbd> play/pause, <kbd>j</kbd>/<kbd>k</kbd> seek ±3s slowly, <kbd>,</kbd>/<kbd>.</kbd> seek ±1 frame.
+            </p>
+        </div>
+
+        <!-- Video Selection (if no file param) -->
+        {% if not filename %}
+        <div class="videos-section">
+            <h2>Select a Video to Crop</h2>
+            {% if videos %}
+            <div class="video-grid">
+                {% for video in videos %}
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <video muted preload="metadata">
+                            <source src="/watch/{{ video }}" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-info">
+                        <p class="video-name">{{ video }}</p>
+                        <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: #888; margin-top: 20px;">No videos uploaded yet. <a href="/" style="color: #667eea;">Upload one</a></p>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- Crop Editor -->
+        <div class="crop-container">
+            <div class="video-wrapper" id="videoWrapper">
+                <video id="videoElement" preload="auto" playsinline>
+                    <source src="/watch/{{ filename }}" type="video/mp4">
+                </video>
+                <canvas id="cropOverlay"></canvas>
+                <div class="skip-overlay" id="skipOverlay">+5s</div>
+            </div>
+        </div>
+
+        <!-- Video Timeline -->
+        <div class="video-timeline">
+            <div class="timeline-container" id="timelineContainer">
+                <canvas id="timelineCanvas"></canvas>
+                <div class="timeline-region" id="timelineRegion"></div>
+                <div class="timeline-marker-in" id="markerIn" style="display:none;"></div>
+                <div class="timeline-marker-out" id="markerOut" style="display:none;"></div>
+                <div class="timeline-playhead" id="timelinePlayhead"></div>
+            </div>
+            <div class="time-display">
+                <div class="time-left">
+                    <span id="currentTime">0:00</span>
+                    <span>/</span>
+                    <span id="durationTime">0:00</span>
+                </div>
+                <div class="time-center">
+                    <button class="marker-btn in-btn" id="setInBtn" title="Set In point (I)">I</button>
+                    <button class="marker-btn out-btn" id="setOutBtn" title="Set Out point (O)">O</button>
+                </div>
+                <div class="time-right">
+                    <span id="inTimeDisplay">I: --</span>
+                    <span id="outTimeDisplay">O: --</span>
+                    <span id="segmentDuration" style="color: #667eea;">Δ: 0.0s / 0 frames</span>
+                    <span id="speedDisplay" style="cursor:pointer; user-select:none;" title="Click to change speed">1x</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crop Controls -->
+        <div class="section-title">Crop Region</div>
+        <div class="crop-controls">
+            <div class="control-group">
+                <label>X Position</label>
+                <div class="value" id="xValue">0</div>
+            </div>
+            <div class="control-group">
+                <label>Y Position</label>
+                <div class="value" id="yValue">0</div>
+            </div>
+            <div class="control-group">
+                <label>Crop Width</label>
+                <div class="value" id="cropWidthValue">0</div>
+            </div>
+            <div class="control-group">
+                <label>Crop Height</label>
+                <div class="value" id="cropHeightValue">0</div>
+            </div>
+            <div class="control-group">
+                <label>Aspect Ratio</label>
+                <div class="ratio-buttons">
+                    <button class="ratio-btn active" data-ratio="free">Free</button>
+                    <button class="ratio-btn" data-ratio="16:9">16:9</button>
+                    <button class="ratio-btn" data-ratio="4:3">4:3</button>
+                    <button class="ratio-btn" data-ratio="1:1">1:1</button>
+                    <button class="ratio-btn" data-ratio="9:16">9:16</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Resolution Controls -->
+        <div class="section-title">Output Resolution</div>
+        <div class="crop-controls">
+            <div class="control-group" style="min-width: 220px;">
+                <label>Presets</label>
+                <div class="resolution-presets">
+                    <button class="preset-btn" data-w="512" data-h="512">512×512</button>
+                    <button class="preset-btn" data-w="684" data-h="384">684×384</button>
+                    <button class="preset-btn" data-w="384" data-h="684">384×684</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Custom Resolution</label>
+                <div class="custom-res">
+                    <input type="number" id="customWidth" placeholder="W" min="1" max="4096" value="">
+                    <span>×</span>
+                    <input type="number" id="customHeight" placeholder="H" min="1" max="4096" value="">
+                    <button class="preset-btn" id="applyCustomRes" style="padding: 4px 10px;">Apply</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Target Size</label>
+                <div class="value" id="targetSizeValue">Original</div>
+            </div>
+            <div class="control-group">
+                <label>Output FPS</label>
+                <div class="custom-res">
+                    <input type="number" id="outputFps" placeholder="FPS" min="1" max="120" step="0.1" value="">
+                    <button class="preset-btn" id="applyFps" style="padding: 4px 10px;">Apply</button>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <div class="value" id="fpsDisplay" style="font-size: 1rem;">Original</div>
+                    <div class="value" id="outputFramesDisplay" style="font-size: 1rem; color: #888;">Frames: --</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-secondary" id="resetBtn">↺ Reset All</button>
+            <button class="btn btn-primary" id="cropBtn">✂️ Apply Crop & Process</button>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section" id="previewSection" style="display:none;">
+            <h3>Results</h3>
+            <div class="preview-grid">
+                <div class="preview-box">
+                    <div class="label">Original</div>
+                    <video id="originalPreview" muted controls></video>
+                </div>
+                <div class="preview-box">
+                    <div class="label">Processed</div>
+                    <video id="processedPreview" muted controls></video>
+                </div>
+            </div>
+            <div class="actions" style="margin-top: 15px;">
+                <a id="downloadBtn" class="btn btn-primary" style="text-decoration:none; display:none;">⬇️ Download Processed Video</a>
+            </div>
+        </div>
+
+        <!-- Processing Overlay -->
+        <div class="processing-overlay" id="processingOverlay">
+            <div class="processing-box">
+                <div class="spinner"></div>
+                <h3>Processing Video...</h3>
+                <p style="color: #888; margin-top: 10px;">This may take a moment depending on video size.</p>
+            </div>
+        </div>
+
+        {% endif %}
+
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script>
+        const videoElement = document.getElementById('videoElement');
+        const overlay = document.getElementById('cropOverlay');
+        const ctx = overlay.getContext('2d');
+        const videoWrapper = document.getElementById('videoWrapper');
+        
+        // Crop state
+        let crop = { x: 0, y: 0, width: 0, height: 0 };
+        let isDrawing = false;
+        let isDragging = false;
+        let isResizing = false;
+        let resizeHandle = '';
+        let startX, startY;
+        let videoWidth, videoHeight;
+        let displayScale = 1;
+        let aspectRatio = null; // null = free, or a number like 16/9
+        let cropSet = false;
+
+        // In/Out markers
+        let inTime = null;
+        let outTime = null;
+
+        // Output resolution
+        let targetWidth = null;
+        let targetHeight = null;
+        let activePreset = null;
+
+        // FPS for frame calculation
+        let videoFps = 30;
+        let outputFps = null;
+
+        // Initialize overlay size
+        function initOverlay() {
+            // Get the actual rendered size of the video element
+            const rect = videoElement.getBoundingClientRect();
+            // Set canvas to match the actual rendered video dimensions
+            overlay.width = videoElement.videoWidth;
+            overlay.height = videoElement.videoHeight;
+            videoWidth = overlay.width;
+            videoHeight = overlay.height;
+            // Calculate scale factor between rendered and intrinsic size
+            displayScale = rect.width / videoElement.videoWidth;
+            // Position the canvas to overlay exactly on the video
+            positionCanvas();
+            drawOverlay();
+        }
+
+        // Position the canvas to exactly match the rendered video position
+        function positionCanvas() {
+            const wrapperRect = videoWrapper.getBoundingClientRect();
+            const videoRect = videoElement.getBoundingClientRect();
+            overlay.style.left = (videoRect.left - wrapperRect.left) + 'px';
+            overlay.style.top = (videoRect.top - wrapperRect.top) + 'px';
+            overlay.style.width = videoRect.width + 'px';
+            overlay.style.height = videoRect.height + 'px';
+        }
+
+        videoElement.addEventListener('loadedmetadata', () => {
+            videoElement.play();
+            videoFps = parseFloat(document.getElementById('videoInfo')?.dataset?.fps) || 30;
+            setTimeout(initOverlay, 100);
+        });
+        
+        window.addEventListener('resize', () => {
+            if (videoWidth && videoHeight) {
+                positionCanvas();
+            }
+        });
+
+        // Draw the crop overlay
+        function drawOverlay() {
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            
+            if (crop.width === 0 || crop.height === 0) {
+                return;
+            }
+
+            // Darken areas outside crop
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            // Top
+            ctx.fillRect(0, 0, overlay.width, crop.y);
+            // Bottom
+            ctx.fillRect(0, crop.y + crop.height, overlay.width, overlay.height - crop.y - crop.height);
+            // Left
+            ctx.fillRect(0, crop.y, crop.x, crop.height);
+            // Right
+            ctx.fillRect(crop.x + crop.width, crop.y, overlay.width - crop.x - crop.width, crop.height);
+
+            // Crop border
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(crop.x, crop.y, crop.width, crop.height);
+
+            // Rule of thirds lines inside crop
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            for (let i = 1; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(crop.x + (crop.width / 3) * i, crop.y);
+                ctx.lineTo(crop.x + (crop.width / 3) * i, crop.y + crop.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(crop.x, crop.y + (crop.height / 3) * i);
+                ctx.lineTo(crop.x + crop.width, crop.y + (crop.height / 3) * i);
+                ctx.stroke();
+            }
+
+            // Resize handles
+            const handles = getHandles();
+            handles.forEach(h => {
+                ctx.fillStyle = '#667eea';
+                ctx.fillRect(h.x - 5, h.y - 5, 10, 10);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(h.x - 3, h.y - 3, 6, 6);
+            });
+
+            // Update value displays
+            document.getElementById('xValue').textContent = Math.round(crop.x);
+            document.getElementById('yValue').textContent = Math.round(crop.y);
+            document.getElementById('cropWidthValue').textContent = Math.round(crop.width);
+            document.getElementById('cropHeightValue').textContent = Math.round(crop.height);
+        }
+
+        function getHandles() {
+            const h = 6;
+            return [
+                { name: 'nw', x: crop.x, y: crop.y },
+                { name: 'ne', x: crop.x + crop.width, y: crop.y },
+                { name: 'sw', x: crop.x, y: crop.y + crop.height },
+                { name: 'se', x: crop.x + crop.width, y: crop.y + crop.height },
+                { name: 'n', x: crop.x + crop.width / 2, y: crop.y },
+                { name: 's', x: crop.x + crop.width / 2, y: crop.y + crop.height },
+                { name: 'w', x: crop.x, y: crop.y + crop.height / 2 },
+                { name: 'e', x: crop.x + crop.width, y: crop.y + crop.height / 2 },
+            ];
+        }
+
+        function getHandleFromPos(x, y) {
+            const handles = getHandles();
+            const threshold = 10;
+            for (const h of handles) {
+                if (Math.abs(x - h.x) < threshold && Math.abs(y - h.y) < threshold) {
+                    return h.name;
+                }
+            }
+            return null;
+        }
+
+        // Mouse events on canvas
+        overlay.addEventListener('mousedown', onMouseDown);
+        overlay.addEventListener('mousemove', onMouseMove);
+        overlay.addEventListener('mouseup', onMouseUp);
+        overlay.addEventListener('mouseleave', onMouseUp);
+
+        function onMouseDown(e) {
+            const rect = overlay.getBoundingClientRect();
+            const scaleX = overlay.width / rect.width;
+            const scaleY = overlay.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            // Check if clicking on a resize handle
+            const handle = getHandleFromPos(x, y);
+            if (handle) {
+                isResizing = true;
+                resizeHandle = handle;
+                startX = x;
+                startY = y;
+                return;
+            }
+
+            // Check if clicking inside crop region (start drag)
+            if (crop.width > 0 && crop.height > 0 &&
+                x >= crop.x && x <= crop.x + crop.width &&
+                y >= crop.y && y <= crop.y + crop.height) {
+                isDragging = true;
+                startX = x - crop.x;
+                startY = y - crop.y;
+                overlay.style.cursor = 'move';
+                return;
+            }
+
+            // Start drawing a new crop region
+            isDrawing = true;
+            startX = x;
+            startY = y;
+            overlay.style.cursor = 'crosshair';
+        }
+
+        function onMouseMove(e) {
+            const rect = overlay.getBoundingClientRect();
+            const scaleX = overlay.width / rect.width;
+            const scaleY = overlay.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            if (isResizing) {
+                handleResize(x, y);
+            } else if (isDragging) {
+                handleDrag(x, y);
+            } else if (isDrawing) {
+                handleDraw(x, y);
+            } else {
+                // Update cursor based on position
+                const handle = getHandleFromPos(x, y);
+                if (handle) {
+                    const cursors = {
+                        'nw': 'nwse-resize', 'se': 'nwse-resize',
+                        'ne': 'nesw-resize', 'sw': 'nesw-resize',
+                        'n': 'ns-resize', 's': 'ns-resize',
+                        'w': 'ew-resize', 'e': 'ew-resize'
+                    };
+                    overlay.style.cursor = cursors[handle] || 'crosshair';
+                } else if (crop.width > 0 && crop.height > 0 &&
+                    x >= crop.x && x <= crop.x + crop.width &&
+                    y >= crop.y && y <= crop.y + crop.height) {
+                    overlay.style.cursor = 'move';
+                } else {
+                    overlay.style.cursor = 'crosshair';
+                }
+            }
+        }
+
+        function onMouseUp(e) {
+            if (isDrawing) {
+                finalizeCrop();
+            }
+            isDrawing = false;
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = '';
+        }
+
+        function handleDraw(x, y) {
+            const x1 = Math.min(startX, x);
+            const y1 = Math.min(startY, y);
+            const w = Math.abs(x - startX);
+            const h = Math.abs(y - startY);
+
+            if (aspectRatio) {
+                const ratio = aspectRatio;
+                crop.width = w;
+                crop.height = w / ratio;
+                if (crop.height < 10) {
+                    crop.height = 10;
+                    crop.width = crop.height * ratio;
+                }
+            } else {
+                crop.x = x1;
+                crop.y = y1;
+                crop.width = w;
+                crop.height = h;
+            }
+
+            constrainCrop();
+            drawOverlay();
+        }
+
+        function handleDrag(x, y) {
+            let newX = x - startX;
+            let newY = y - startY;
+
+            // Constrain to video bounds
+            newX = Math.max(0, Math.min(newX, videoWidth - crop.width));
+            newY = Math.max(0, Math.min(newY, videoHeight - crop.height));
+
+            crop.x = newX;
+            crop.y = newY;
+            drawOverlay();
+        }
+
+        function handleResize(x, y) {
+            const minSize = 20;
+
+            switch (resizeHandle) {
+                case 'se':
+                    crop.width = x - crop.x;
+                    crop.height = aspectRatio ? (x - crop.x) / aspectRatio : y - crop.y;
+                    break;
+                case 'sw':
+                    const newWsw = crop.x + crop.width - x;
+                    if (newWsw >= minSize) {
+                        crop.x = x;
+                        crop.width = newWsw;
+                    }
+                    crop.height = aspectRatio ? crop.width / aspectRatio : y - crop.y;
+                    break;
+                case 'ne':
+                    crop.width = x - crop.x;
+                    const newHne = crop.y + crop.height - y;
+                    if (newHne >= minSize) {
+                        crop.y = y;
+                        crop.height = newHne;
+                    }
+                    if (aspectRatio) {
+                        crop.height = crop.width / aspectRatio;
+                    }
+                    break;
+                case 'nw':
+                    const newWnw = crop.x + crop.width - x;
+                    const newHnw = crop.y + crop.height - y;
+                    if (newWnw >= minSize && newHnw >= minSize) {
+                        crop.x = x;
+                        crop.y = y;
+                        crop.width = newWnw;
+                        crop.height = aspectRatio ? newWnw / aspectRatio : newHnw;
+                    }
+                    break;
+                case 'n':
+                    const newHn = crop.y + crop.height - y;
+                    if (newHn >= minSize) {
+                        crop.y = y;
+                        crop.height = newHn;
+                        if (aspectRatio) crop.width = crop.height * aspectRatio;
+                    }
+                    break;
+                case 's':
+                    // Bottom-center handle: only change height, keep top edge fixed
+                    const newHs = y - crop.y;
+                    if (newHs >= minSize) {
+                        crop.height = newHs;
+                        if (aspectRatio) {
+                            // Recalculate width from new height: width = height * aspectRatio
+                            const newW = crop.height * aspectRatio;
+                            if (crop.x + newW <= videoWidth + 1) {
+                                crop.width = newW;
+                            } else {
+                                crop.width = Math.max(minSize, videoWidth - crop.x);
+                                crop.height = crop.width * aspectRatio;
+                            }
+                        }
+                    }
+                    break;
+                case 'w':
+                    const newWw = crop.x + crop.width - x;
+                    if (newWw >= minSize) {
+                        crop.x = x;
+                        crop.width = newWw;
+                        if (aspectRatio) crop.height = crop.width / aspectRatio;
+                    }
+                    break;
+                case 'e':
+                    crop.width = x - crop.x;
+                    if (aspectRatio) crop.height = crop.width / aspectRatio;
+                    break;
+            }
+
+            constrainCrop();
+            drawOverlay();
+        }
+
+        function constrainCrop() {
+            crop.x = Math.max(0, Math.min(crop.x, videoWidth - 1));
+            crop.y = Math.max(0, Math.min(crop.y, videoHeight - 1));
+            crop.width = Math.max(20, Math.min(crop.width, videoWidth - crop.x));
+            crop.height = Math.max(20, Math.min(crop.height, videoHeight - crop.y));
+        }
+
+        function finalizeCrop() {
+            // Ensure minimum size
+            if (crop.width < 20) crop.width = 20;
+            if (crop.height < 20) crop.height = 20;
+            cropSet = true;
+            drawOverlay();
+        }
+
+        // Reset button
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            crop = { x: 0, y: 0, width: 0, height: 0 };
+            cropSet = false;
+            inTime = null;
+            outTime = null;
+            targetWidth = null;
+            targetHeight = null;
+            activePreset = null;
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('xValue').textContent = '0';
+            document.getElementById('yValue').textContent = '0';
+            document.getElementById('cropWidthValue').textContent = '0';
+            document.getElementById('cropHeightValue').textContent = '0';
+            document.getElementById('setInBtn').classList.remove('active');
+            document.getElementById('setOutBtn').classList.remove('active');
+            document.getElementById('markerIn').style.display = 'none';
+            document.getElementById('markerOut').style.display = 'none';
+            document.getElementById('timelineRegion').style.display = 'none';
+            document.getElementById('inTimeDisplay').textContent = 'I: --';
+            document.getElementById('outTimeDisplay').textContent = 'O: --';
+            document.getElementById('segmentDuration').textContent = 'Δ: 0.0s / 0 frames';
+            document.getElementById('targetSizeValue').textContent = 'Original';
+            document.getElementById('customWidth').value = '';
+            document.getElementById('customHeight').value = '';
+            document.querySelectorAll('.preset-btn[data-w]').forEach(b => b.classList.remove('active'));
+            document.getElementById('outputFps').value = '';
+            document.getElementById('fpsDisplay').textContent = 'Original';
+            outputFps = null;
+        });
+
+        // Aspect ratio buttons
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const ratioStr = btn.dataset.ratio;
+                if (ratioStr === 'free') {
+                    aspectRatio = null;
+                } else {
+                    const [w, h] = ratioStr.split(':').map(Number);
+                    aspectRatio = w / h;
+                }
+                // Re-apply current crop with new ratio
+                if (cropSet && crop.width > 0 && crop.height > 0) {
+                    if (aspectRatio) {
+                        crop.height = crop.width / aspectRatio;
+                    }
+                    constrainCrop();
+                    drawOverlay();
+                }
+            });
+        });
+
+        // ====== RESOLUTION PRESETS ======
+        document.querySelectorAll('.preset-btn[data-w]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.preset-btn[data-w]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                targetWidth = parseInt(btn.dataset.w);
+                targetHeight = parseInt(btn.dataset.h);
+                activePreset = `${targetWidth}×${targetHeight}`;
+                document.getElementById('targetSizeValue').textContent = activePreset;
+                document.getElementById('customWidth').value = '';
+                document.getElementById('customHeight').value = '';
+                
+                // Auto-select aspect ratio based on resolution preset
+                const ratio = targetWidth / targetHeight;
+                const acceptedRatios = [
+                    { str: '16:9', val: 16/9 },
+                    { str: '4:3', val: 4/3 },
+                    { str: '1:1', val: 1 },
+                    { str: '9:16', val: 9/16 },
+                    { str: '3:2', val: 3/2 },
+                    { str: '2:3', val: 2/3 },
+                ];
+                let closestRatio = null;
+                let closestDiff = Infinity;
+                for (const r of acceptedRatios) {
+                    const diff = Math.abs(r.val - ratio);
+                    if (diff < closestDiff) {
+                        closestDiff = diff;
+                        closestRatio = r;
+                    }
+                }
+                if (closestRatio && closestDiff < 0.05) {
+                    aspectRatio = closestRatio.val;
+                    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelector(`.ratio-btn[data-ratio="${closestRatio.str}"]`)?.classList.add('active');
+                }
+                
+                updateOutputFrames();
+            });
+        });
+
+        document.getElementById('applyFps').addEventListener('click', () => {
+            const fpsVal = parseFloat(document.getElementById('outputFps').value);
+            if (fpsVal && fpsVal > 0 && fpsVal <= 120) {
+                outputFps = fpsVal;
+                document.getElementById('fpsDisplay').textContent = fpsVal + ' fps';
+                updateOutputFrames();
+            }
+        });
+
+        document.getElementById('applyCustomRes').addEventListener('click', () => {
+            const w = parseInt(document.getElementById('customWidth').value);
+            const h = parseInt(document.getElementById('customHeight').value);
+            if (w && h && w >= 1 && h >= 1 && w <= 4096 && h <= 4096) {
+                targetWidth = w;
+                targetHeight = h;
+                activePreset = null;
+                document.getElementById('targetSizeValue').textContent = `${w}×${h}`;
+                document.querySelectorAll('.preset-btn[data-w]').forEach(b => b.classList.remove('active'));
+                updateOutputFrames();
+            }
+        });
+
+        // ====== OUTPUT FRAMES CALCULATION ======
+        function updateOutputFrames() {
+            if (inTime !== null && outTime !== null && outputFps) {
+                const segDuration = outTime - inTime;
+                const frames = Math.round(segDuration * outputFps);
+                document.getElementById('outputFramesDisplay').textContent = `Frames: ${frames}`;
+            } else if (inTime !== null && outTime !== null) {
+                const segDuration = outTime - inTime;
+                const frames = Math.round(segDuration * videoFps);
+                document.getElementById('outputFramesDisplay').textContent = `Frames: ${frames} (at ${videoFps} fps)`;
+            } else {
+                document.getElementById('outputFramesDisplay').textContent = 'Frames: --';
+            }
+        }
+
+        // Update output frames when segment changes
+        const origUpdateMarkers = updateMarkers;
+        updateMarkers = function() {
+            origUpdateMarkers();
+            updateOutputFrames();
+        };
+
+        // ====== IN/OUT MARKERS ======
+        function updateMarkers() {
+            if (!videoElement.duration) return;
+
+            // Update In marker
+            if (inTime !== null) {
+                const pct = (inTime / videoElement.duration) * 100;
+                document.getElementById('markerIn').style.display = 'block';
+                document.getElementById('markerIn').style.left = pct + '%';
+                document.getElementById('setInBtn').classList.add('active');
+            } else {
+                document.getElementById('markerIn').style.display = 'none';
+                document.getElementById('setInBtn').classList.remove('active');
+            }
+
+            // Update Out marker
+            if (outTime !== null) {
+                const pct = (outTime / videoElement.duration) * 100;
+                document.getElementById('markerOut').style.display = 'block';
+                document.getElementById('markerOut').style.left = pct + '%';
+                document.getElementById('setOutBtn').classList.add('active');
+            } else {
+                document.getElementById('markerOut').style.display = 'none';
+                document.getElementById('setOutBtn').classList.remove('active');
+            }
+
+            // Update region highlight
+            if (inTime !== null && outTime !== null) {
+                const leftPct = Math.min((inTime / videoElement.duration) * 100, (outTime / videoElement.duration) * 100);
+                const widthPct = Math.abs((outTime - inTime) / videoElement.duration * 100);
+                document.getElementById('timelineRegion').style.display = 'block';
+                document.getElementById('timelineRegion').style.left = leftPct + '%';
+                document.getElementById('timelineRegion').style.width = widthPct + '%';
+            } else if (inTime !== null) {
+                document.getElementById('timelineRegion').style.display = 'none';
+            } else {
+                document.getElementById('timelineRegion').style.display = 'none';
+            }
+
+            // Update displays
+            document.getElementById('inTimeDisplay').textContent = inTime !== null ? `I: ${formatTime(inTime)}` : 'I: --';
+            document.getElementById('outTimeDisplay').textContent = outTime !== null ? `O: ${formatTime(outTime)}` : 'O: --';
+
+            // Calculate segment duration
+            let segDuration = 0;
+            let segFrames = 0;
+            if (inTime !== null && outTime !== null) {
+                segDuration = outTime - inTime;
+                segFrames = Math.round(segDuration * videoFps);
+            }
+            document.getElementById('segmentDuration').textContent = `Δ: ${segDuration.toFixed(1)}s / ${segFrames} frames`;
+        }
+
+        document.getElementById('setInBtn').addEventListener('click', () => {
+            if (inTime === videoElement.currentTime) {
+                inTime = null;
+            } else {
+                inTime = videoElement.currentTime;
+            }
+            updateMarkers();
+        });
+
+        document.getElementById('setOutBtn').addEventListener('click', () => {
+            if (outTime === videoElement.currentTime) {
+                outTime = null;
+            } else {
+                outTime = videoElement.currentTime;
+            }
+            updateMarkers();
+        });
+
+        // ====== VIDEO SCRUBBING ======
+
+        const skipOverlay = document.getElementById('skipOverlay');
+        const timelineContainer = document.getElementById('timelineContainer');
+        const timelinePlayhead = document.getElementById('timelinePlayhead');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationTimeEl = document.getElementById('durationTime');
+        const speedDisplayEl = document.getElementById('speedDisplay');
+        let playbackRate = 1;
+        const playbackRates = [0.5, 1, 1.5, 2];
+        let currentRateIndex = 1;
+
+        // Format seconds to mm:ss
+        function formatTime(seconds) {
+            const s = Math.floor(seconds);
+            const mins = Math.floor(s / 60);
+            const secs = s % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Update timeline playhead position
+        function updateTimeline() {
+            if (videoElement.duration) {
+                const percent = (videoElement.currentTime / videoElement.duration) * 100;
+                timelinePlayhead.style.left = `calc(${percent}% - 6px)`;
+                currentTimeEl.textContent = formatTime(videoElement.currentTime);
+            }
+        }
+
+        // Update duration once metadata is loaded
+        videoElement.addEventListener('loadedmetadata', () => {
+            durationTimeEl.textContent = formatTime(videoElement.duration);
+        });
+
+        // Update timeline on time update
+        videoElement.addEventListener('timeupdate', () => {
+            if (!videoElement.seeking) {
+                updateTimeline();
+            }
+        });
+
+        // Reposition canvas when video render state changes
+        videoElement.addEventListener('resize', () => {
+            positionCanvas();
+        });
+
+        // Click on timeline to seek
+        timelineContainer.addEventListener('click', (e) => {
+            const rect = timelineContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = x / rect.width;
+            videoElement.currentTime = percent * videoElement.duration;
+        });
+
+        // Timeline hover preview (no thumbnails, just timestamp)
+        let hoverIndicatorEl = null;
+
+        function getHoverIndicator() {
+            if (!hoverIndicatorEl) {
+                hoverIndicatorEl = document.createElement('div');
+                hoverIndicatorEl.style.cssText = `
+                    position: fixed;
+                    background: rgba(0, 0, 0, 0.85);
+                    border: 1px solid #667eea;
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    display: none;
+                    color: #fff;
+                    font-size: 12px;
+                    font-family: monospace;
+                    white-space: nowrap;
+                `;
+                document.body.appendChild(hoverIndicatorEl);
+            }
+            return hoverIndicatorEl;
+        }
+
+        timelineContainer.addEventListener('mousemove', (e) => {
+            const indicator = getHoverIndicator();
+            const rect = timelineContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = Math.max(0, Math.min(1, x / rect.width));
+            const seekTime = percent * (videoElement.duration || 0);
+
+            indicator.textContent = formatTime(seekTime);
+            indicator.style.display = 'block';
+            indicator.style.left = e.clientX + 'px';
+            indicator.style.bottom = (window.innerHeight - e.clientY + 10) + 'px';
+        });
+
+        timelineContainer.addEventListener('mouseleave', () => {
+            if (hoverIndicatorEl) {
+                hoverIndicatorEl.style.display = 'none';
+            }
+        });
+
+        // Speed display click to cycle speeds
+        speedDisplayEl.addEventListener('click', () => {
+            currentRateIndex = (currentRateIndex + 1) % playbackRates.length;
+            playbackRate = playbackRates[currentRateIndex];
+            videoElement.playbackRate = playbackRate;
+            speedDisplayEl.textContent = playbackRate + 'x';
+        });
+
+        // Show skip indicator overlay
+        function showSkipIndicator(text) {
+            skipOverlay.textContent = text;
+            skipOverlay.classList.add('visible');
+            setTimeout(() => {
+                skipOverlay.classList.remove('visible');
+            }, 400);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Don't capture keys when focused on inputs
+            if (e.target.tagName === 'INPUT') return;
+
+            switch (e.key.toLowerCase()) {
+                case 'arrowright':
+                    e.preventDefault();
+                    videoElement.currentTime = Math.min(videoElement.duration || 0, videoElement.currentTime + 5);
+                    showSkipIndicator('+5s');
+                    break;
+                case 'arrowleft':
+                    e.preventDefault();
+                    videoElement.currentTime = Math.max(0, videoElement.currentTime - 5);
+                    showSkipIndicator('-5s');
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    if (videoElement.paused) {
+                        videoElement.play();
+                    } else {
+                        videoElement.pause();
+                    }
+                    break;
+                case 'k':
+                    e.preventDefault();
+                    videoElement.currentTime = Math.max(0, videoElement.currentTime + 3);
+                    showSkipIndicator('+3s');
+                    break;
+                case 'j':
+                    e.preventDefault();
+                    videoElement.currentTime = Math.max(0, videoElement.currentTime - 3);
+                    showSkipIndicator('-3s');
+                    break;
+                case ',':
+                    e.preventDefault();
+                    videoElement.currentTime = Math.max(0, videoElement.currentTime - (1 / videoFps));
+                    showSkipIndicator('-1f');
+                    break;
+                case '.':
+                    e.preventDefault();
+                    videoElement.currentTime = Math.min(videoElement.duration || 0, videoElement.currentTime + (1 / videoFps));
+                    showSkipIndicator('+1f');
+                    break;
+                case 'i':
+                    e.preventDefault();
+                    inTime = videoElement.currentTime;
+                    updateMarkers();
+                    showSkipIndicator('I set');
+                    break;
+                case 'o':
+                    e.preventDefault();
+                    outTime = videoElement.currentTime;
+                    updateMarkers();
+                    showSkipIndicator('O set');
+                    break;
+            }
+        });
+
+        // ESC key to reset
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && e.target.tagName !== 'INPUT') {
+                document.getElementById('resetBtn').click();
+            }
+        });
+
+        // Apply Crop button
+        document.getElementById('cropBtn').addEventListener('click', async () => {
+            if (crop.width <= 0 || crop.height <= 0) {
+                showStatus('Please select a crop region first.', 'error');
+                return;
+            }
+
+            // Show processing overlay
+            document.getElementById('processingOverlay').classList.add('active');
+
+            const filename = '{{ filename }}';
+            const data = {
+                filename: filename,
+                x: Math.round(crop.x),
+                y: Math.round(crop.y),
+                width: Math.round(crop.width),
+                height: Math.round(crop.height),
+                in_time: inTime,
+                out_time: outTime,
+                target_width: targetWidth,
+                target_height: targetHeight,
+                output_fps: outputFps
+            };
+
+            try {
+                const response = await fetch('/crop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                document.getElementById('processingOverlay').classList.remove('active');
+
+                if (result.error) {
+                    showStatus(result.error, 'error');
+                    return;
+                }
+
+                // Show preview
+                document.getElementById('previewSection').style.display = 'block';
+                document.getElementById('originalPreview').src = `/watch/${filename}`;
+                
+                // The processed video is in the output folder, use the download link
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.href = `/download/${result.filename}`;
+                downloadBtn.style.display = 'inline-block';
+                downloadBtn.dataset.filename = result.filename;
+
+                // Load processed video preview
+                setTimeout(() => {
+                    document.getElementById('processedPreview').src = `/download/${result.filename}?t=${Date.now()}`;
+                }, 500);
+
+                showStatus('Video processed successfully!', 'success');
+
+            } catch (err) {
+                document.getElementById('processingOverlay').classList.remove('active');
+                showStatus('Processing failed: ' + err.message, 'error');
+            }
+        });
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = msg;
+            el.className = 'status-message ' + type;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        // Enter key to apply crop when crop is set
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && cropSet && e.target.tagName !== 'INPUT') {
+                document.getElementById('cropBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
