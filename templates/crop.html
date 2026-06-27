@@ -29,7 +29,7 @@
         #videoElement {
             display: block;
             max-width: 100%;
-            max-height: calc(100vh - 520px);
+            max-height: calc(100vh - 600px);
             width: auto;
             height: auto;
         }
@@ -48,53 +48,156 @@
             color: #fff;
             font-size: 1rem;
             font-weight: 600;
-            margin: 20px 0 10px 0;
+            margin: 10px 0 8px 0;
             padding-left: 5px;
             border-left: 3px solid #667eea;
         }
 
-        .crop-controls {
+        /* Three-column layout for crop editor */
+        .crop-editor-layout {
             display: flex;
-            gap: 15px;
-            margin: 10px 0;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-start;
+            gap: 20px;
+            max-width: 1400px;
             width: 100%;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .crop-editor-left {
+            flex: 0 0 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .crop-editor-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             max-width: 1000px;
+        }
+
+        .crop-editor-right {
+            flex: 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .control-group {
             background: #1a1a2e;
             border-radius: 10px;
-            padding: 15px 20px;
+            padding: 10px 15px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            min-width: 160px;
+            gap: 6px;
         }
 
         .control-group label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .control-group .value {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #667eea;
         }
 
+        .ratio-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .ratio-btn {
+            padding: 5px 10px;
+            background: #2a2a3e;
+            color: #aaa;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+            min-width: 40px;
+        }
+
+        .ratio-btn:hover {
+            background: #333350;
+        }
+
+        .ratio-btn.active {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .resolution-presets {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .preset-btn {
+            padding: 6px 10px;
+            background: #2a2a3e;
+            color: #aaa;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .preset-btn:hover {
+            background: #333350;
+        }
+
+        .preset-btn.active {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .custom-res {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .custom-res input {
+            width: 50px;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .custom-res input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .custom-res span {
+            color: #666;
+        }
+
         .btn {
-            padding: 12px 28px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            text-align: center;
         }
 
         .btn:hover {
@@ -117,134 +220,36 @@
             color: #ccc;
         }
 
-        .actions {
-            display: flex;
-            gap: 15px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .preview-section {
-            margin: 30px 0;
-            width: 100%;
-            max-width: 900px;
-        }
-
-        .preview-section h3 {
-            margin-bottom: 15px;
-            color: #fff;
-        }
-
-        .preview-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .preview-box {
-            background: #1a1a2e;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .preview-box .label {
-            padding: 10px 15px;
-            background: #22223a;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #aaa;
-            text-transform: uppercase;
-        }
-
-        .preview-box video {
-            width: 100%;
-            display: block;
-            background: #000;
-            max-height: 300px;
-            object-fit: contain;
-        }
-
-        .processing-overlay {
+        .help-content {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .processing-overlay.active {
-            display: flex;
-        }
-
-        .processing-box {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #2a2a3e;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .back-link {
-            display: inline-block;
-            color: #888;
-            text-decoration: none;
-            margin-bottom: 20px;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: #667eea;
-        }
-
-        .instructions {
             background: #1a1a2e;
             border-radius: 10px;
             padding: 15px 20px;
-            margin: 20px 0;
-            max-width: 1000px;
+            margin: 10px 0;
+            max-width: 800px;
             width: 100%;
         }
 
-        .instructions p {
-            color: #888;
-            font-size: 0.9rem;
-            line-height: 1.6;
+        .help-content.active {
+            display: block;
         }
 
-        .instructions kbd {
-            background: #2a2a3e;
-            padding: 2px 8px;
-            border-radius: 4px;
+        .help-content p {
+            color: #888;
             font-size: 0.85rem;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+
+        .help-content kbd {
+            background: #2a2a3e;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
             color: #ccc;
         }
 
-        .ratio-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .ratio-btn {
+        .help-btn {
             padding: 6px 14px;
             background: #2a2a3e;
             color: #aaa;
@@ -255,13 +260,9 @@
             transition: all 0.2s;
         }
 
-        .ratio-btn:hover {
+        .help-btn:hover {
             background: #333350;
-        }
-
-        .ratio-btn.active {
             border-color: #667eea;
-            color: #667eea;
         }
 
         /* Video Timeline */
@@ -326,7 +327,7 @@
             content: 'I';
             position: absolute;
             top: 2px;
-            left: -8px;
+            left: -20px;
             color: #2ecc71;
             font-size: 10px;
             font-weight: bold;
@@ -346,7 +347,7 @@
             content: 'O';
             position: absolute;
             top: 2px;
-            right: -8px;
+            right: -20px;
             color: #e74c3c;
             font-size: 10px;
             font-weight: bold;
@@ -416,6 +417,12 @@
             color: white;
         }
 
+        .marker-btn.play-btn {
+            background: #667eea;
+            color: white;
+            min-width: 36px;
+        }
+
         .marker-btn.active {
             box-shadow: 0 0 0 2px #fff;
         }
@@ -442,64 +449,112 @@
             opacity: 1;
         }
 
-        .resolution-presets {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 5px;
-        }
-
-        .preset-btn {
-            padding: 4px 10px;
-            background: #2a2a3e;
-            color: #aaa;
-            border: 2px solid transparent;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-
-        .preset-btn:hover {
-            background: #333350;
-        }
-
-        .preset-btn.active {
-            border-color: #667eea;
-            color: #667eea;
-        }
-
-        .custom-res {
-            display: flex;
-            gap: 5px;
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+            justify-content: center;
             align-items: center;
-            margin-top: 5px;
         }
 
-        .custom-res input {
-            width: 60px;
-            background: #2a2a3e;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 4px 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+        .processing-overlay.active {
+            display: flex;
+        }
+
+        .processing-box {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 40px;
             text-align: center;
         }
 
-        .custom-res input:focus {
-            outline: none;
-            border-color: #667eea;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
 
-        .custom-res span {
-            color: #666;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        @media (max-width: 768px) {
+        .back-link {
+            display: inline-block;
+            color: #888;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #667eea;
+        }
+
+        .preview-section {
+            margin: 30px 0;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .preview-section h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .preview-box {
+            background: #1a1a2e;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .preview-box .label {
+            padding: 10px 15px;
+            background: #22223a;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .preview-box video {
+            width: 100%;
+            display: block;
+            background: #000;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        @media (max-width: 1100px) {
+            .crop-editor-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .crop-editor-left, .crop-editor-right {
+                flex: 1 1 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .control-group {
+                flex: 1;
+                min-width: 140px;
+            }
             .preview-grid { grid-template-columns: 1fr; }
-            .crop-controls { flex-direction: column; align-items: stretch; }
-            .control-group { min-width: auto; }
         }
     </style>
 </head>
@@ -507,21 +562,17 @@
     <div class="container">
         <a href="/" class="back-link">← Back to Upload</a>
 
-        <h1>✂️ Crop & Process Video</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1400px;">
+            <h1>✂️ Crop & Process Video</h1>
+            <button class="help-btn" id="helpBtn">❓ Help</button>
+        </div>
 
-        <div class="instructions">
-            <p>
-                <strong>1. Select crop area:</strong> Click and drag on the video to select the crop region. Use resize handles (corners & edges) to adjust.
-            </p>
-            <p>
-                <strong>2. Set In/Out markers:</strong> Play the video and press <kbd>I</kbd> to set In point, <kbd>O</kbd> to set Out point. Only the selected segment will be processed.
-            </p>
-            <p>
-                <strong>3. Choose resolution:</strong> Select a preset or enter custom output resolution.
-            </p>
-            <p style="margin-top: 8px;">
-                <strong>Navigate:</strong> Click the timeline, or use keyboard: <kbd>←</kbd> <kbd>→</kbd> seek ±5s, <kbd>Space</kbd> play/pause, <kbd>j</kbd>/<kbd>k</kbd> seek ±3s slowly, <kbd>,</kbd>/<kbd>.</kbd> seek ±1 frame.
-            </p>
+        <!-- Help content (hidden by default) -->
+        <div class="help-content" id="helpContent">
+            <p><strong>1. Select crop area:</strong> Click and drag on the video to select the crop region. Use resize handles (corners & edges) to adjust.</p>
+            <p><strong>2. Set In/Out markers:</strong> Play the video and press <kbd>I</kbd> to set In point, <kbd>O</kbd> to set Out point. Only the selected segment will be processed.</p>
+            <p><strong>3. Choose output resolution:</strong> Select a preset or enter custom resolution on the left panel.</p>
+            <p><strong>Navigate:</strong> Click the timeline, or use keyboard: <kbd>←</kbd> <kbd>→</kbd> seek ±5s, <kbd>Space</kbd> play/pause, <kbd>j</kbd>/<kbd>k</kbd> seek ±3s slowly, <kbd>,</kbd>/<kbd>.</kbd> seek ±1 frame.</p>
         </div>
 
         <!-- Video Selection (if no file param) -->
@@ -549,117 +600,122 @@
             {% endif %}
         </div>
         {% else %}
-        <!-- Crop Editor -->
-        <div class="crop-container">
-            <div class="video-wrapper" id="videoWrapper">
-                <video id="videoElement" preload="auto" playsinline>
-                    <source src="/watch/{{ filename }}" type="video/mp4">
-                </video>
-                <canvas id="cropOverlay"></canvas>
-                <div class="skip-overlay" id="skipOverlay">+5s</div>
-            </div>
-        </div>
+        <!-- Crop Editor with three-column layout -->
+        <div class="crop-editor-layout">
+            <!-- LEFT PANEL: Controls -->
+            <div class="crop-editor-left">
+                <div class="section-title" style="margin-left: 5px;">Settings</div>
+                
+                <!-- Aspect Ratio -->
+                <div class="control-group">
+                    <label>Aspect Ratio</label>
+                    <div class="ratio-buttons">
+                        <button class="ratio-btn active" data-ratio="free">Free</button>
+                        <button class="ratio-btn" data-ratio="16:9">16:9</button>
+                        <button class="ratio-btn" data-ratio="4:3">4:3</button>
+                        <button class="ratio-btn" data-ratio="1:1">1:1</button>
+                        <button class="ratio-btn" data-ratio="9:16">9:16</button>
+                    </div>
+                </div>
 
-        <!-- Video Timeline -->
-        <div class="video-timeline">
-            <div class="timeline-container" id="timelineContainer">
-                <canvas id="timelineCanvas"></canvas>
-                <div class="timeline-region" id="timelineRegion"></div>
-                <div class="timeline-marker-in" id="markerIn" style="display:none;"></div>
-                <div class="timeline-marker-out" id="markerOut" style="display:none;"></div>
-                <div class="timeline-playhead" id="timelinePlayhead"></div>
-            </div>
-            <div class="time-display">
-                <div class="time-left">
-                    <span id="currentTime">0:00</span>
-                    <span>/</span>
-                    <span id="durationTime">0:00</span>
+                <!-- Output Resolution Presets -->
+                <div class="control-group">
+                    <label>Resolution Presets</label>
+                    <div class="resolution-presets">
+                        <button class="preset-btn" data-w="512" data-h="512">512×512</button>
+                        <button class="preset-btn" data-w="684" data-h="384">684×384</button>
+                        <button class="preset-btn" data-w="384" data-h="684">384×684</button>
+                        <button class="preset-btn" id="customResBtn">Custom...</button>
+                    </div>
                 </div>
-                <div class="time-center">
-                    <button class="marker-btn in-btn" id="setInBtn" title="Set In point (I)">I</button>
-                    <button class="marker-btn out-btn" id="setOutBtn" title="Set Out point (O)">O</button>
-                </div>
-                <div class="time-right">
-                    <span id="inTimeDisplay">I: --</span>
-                    <span id="outTimeDisplay">O: --</span>
-                    <span id="segmentDuration" style="color: #667eea;">Δ: 0.0s / 0 frames</span>
-                    <span id="speedDisplay" style="cursor:pointer; user-select:none;" title="Click to change speed">1x</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Crop Controls -->
-        <div class="section-title">Crop Region</div>
-        <div class="crop-controls">
-            <div class="control-group">
-                <label>X Position</label>
-                <div class="value" id="xValue">0</div>
-            </div>
-            <div class="control-group">
-                <label>Y Position</label>
-                <div class="value" id="yValue">0</div>
-            </div>
-            <div class="control-group">
-                <label>Crop Width</label>
-                <div class="value" id="cropWidthValue">0</div>
-            </div>
-            <div class="control-group">
-                <label>Crop Height</label>
-                <div class="value" id="cropHeightValue">0</div>
-            </div>
-            <div class="control-group">
-                <label>Aspect Ratio</label>
-                <div class="ratio-buttons">
-                    <button class="ratio-btn active" data-ratio="free">Free</button>
-                    <button class="ratio-btn" data-ratio="16:9">16:9</button>
-                    <button class="ratio-btn" data-ratio="4:3">4:3</button>
-                    <button class="ratio-btn" data-ratio="1:1">1:1</button>
-                    <button class="ratio-btn" data-ratio="9:16">9:16</button>
+                <!-- Custom Resolution (hidden until Custom selected) -->
+                <div class="control-group" id="customResPanel" style="display: none;">
+                    <label>Custom Resolution</label>
+                    <div class="custom-res">
+                        <input type="number" id="customWidth" placeholder="W" min="1" max="4096" value="">
+                        <span>×</span>
+                        <input type="number" id="customHeight" placeholder="H" min="1" max="4096" value="">
+                        <button class="preset-btn" id="applyCustomRes" style="padding: 4px 10px;">✓</button>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Output Resolution Controls -->
-        <div class="section-title">Output Resolution</div>
-        <div class="crop-controls">
-            <div class="control-group" style="min-width: 220px;">
-                <label>Presets</label>
-                <div class="resolution-presets">
-                    <button class="preset-btn" data-w="512" data-h="512">512×512</button>
-                    <button class="preset-btn" data-w="680" data-h="384">680×384</button>
-                    <button class="preset-btn" data-w="384" data-h="680">384×680</button>
+                <!-- Output FPS -->
+                <div class="control-group">
+                    <label>Output FPS</label>
+                    <div class="custom-res">
+                        <input type="number" id="outputFps" placeholder="FPS" min="1" max="120" step="0.1" value="">
+                        <button class="preset-btn" id="applyFps" style="padding: 4px 10px;">✓</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <div class="value" id="fpsDisplay" style="font-size: 0.9rem;">Original</div>
+                        <div class="value" id="outputFramesDisplay" style="font-size: 0.9rem; color: #888;">Frames: --</div>
+                    </div>
                 </div>
             </div>
-            <div class="control-group">
-                <label>Custom Resolution</label>
-                <div class="custom-res">
-                    <input type="number" id="customWidth" placeholder="W" min="1" max="4096" value="">
-                    <span>×</span>
-                    <input type="number" id="customHeight" placeholder="H" min="1" max="4096" value="">
-                    <button class="preset-btn" id="applyCustomRes" style="padding: 4px 10px;">Apply</button>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Target Size</label>
-                <div class="value" id="targetSizeValue">Original</div>
-            </div>
-            <div class="control-group">
-                <label>Output FPS</label>
-                <div class="custom-res">
-                    <input type="number" id="outputFps" placeholder="FPS" min="1" max="120" step="0.1" value="">
-                    <button class="preset-btn" id="applyFps" style="padding: 4px 10px;">Apply</button>
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <div class="value" id="fpsDisplay" style="font-size: 1rem;">Original</div>
-                    <div class="value" id="outputFramesDisplay" style="font-size: 1rem; color: #888;">Frames: --</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="actions">
-            <button class="btn btn-secondary" id="resetBtn">↺ Reset All</button>
-            <button class="btn btn-primary" id="cropBtn">✂️ Apply Crop & Process</button>
+            <!-- CENTER PANEL: Video + Timeline -->
+            <div class="crop-editor-center">
+                <div class="crop-container">
+                    <div class="video-wrapper" id="videoWrapper">
+                        <video id="videoElement" preload="auto" playsinline>
+                            <source src="/watch/{{ filename }}" type="video/mp4">
+                        </video>
+                        <canvas id="cropOverlay"></canvas>
+                        <div class="skip-overlay" id="skipOverlay">+5s</div>
+                    </div>
+                </div>
+
+                <!-- Video Timeline -->
+                <div class="video-timeline">
+                    <div class="timeline-container" id="timelineContainer">
+                        <canvas id="timelineCanvas"></canvas>
+                        <div class="timeline-region" id="timelineRegion"></div>
+                        <div class="timeline-marker-in" id="markerIn" style="display:none;"></div>
+                        <div class="timeline-marker-out" id="markerOut" style="display:none;"></div>
+                        <div class="timeline-playhead" id="timelinePlayhead"></div>
+                    </div>
+                    <div class="time-display">
+                        <div class="time-left">
+                            <span id="currentTime">0:00</span>
+                            <span>/</span>
+                            <span id="durationTime">0:00</span>
+                        </div>
+                        <div class="time-center">
+                            <button class="marker-btn play-btn" id="playPauseBtn" title="Play/Pause (Space)">⏸</button>
+                            <button class="marker-btn in-btn" id="setInBtn" title="Set In point (I)">I</button>
+                            <button class="marker-btn out-btn" id="setOutBtn" title="Set Out point (O)">O</button>
+                        </div>
+                        <div class="time-right">
+                            <span id="inTimeDisplay">I: --</span>
+                            <span id="outTimeDisplay">O: --</span>
+                            <span id="segmentDuration" style="color: #667eea;">Δ: 0.0s / 0 frames</span>
+                            <span id="speedDisplay" style="cursor:pointer; user-select:none;" title="Click to change speed">1x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Crop info & Actions -->
+            <div class="crop-editor-right">
+                <div class="section-title" style="margin-left: 5px;">Crop</div>
+
+                <!-- Crop Dimensions -->
+                <div class="control-group">
+                    <label>Crop Width</label>
+                    <div class="value" id="cropWidthValue">0</div>
+                </div>
+                <div class="control-group">
+                    <label>Crop Height</label>
+                    <div class="value" id="cropHeightValue">0</div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="control-group" style="gap: 8px;">
+                    <button class="btn btn-secondary" id="resetBtn" style="width: 100%;">↺ Reset All</button>
+                    <button class="btn btn-primary" id="cropBtn" style="width: 100%;">✂️ Apply Crop</button>
+                </div>
+            </div>
         </div>
 
         <!-- Preview Section -->
@@ -675,7 +731,7 @@
                     <video id="processedPreview" muted controls></video>
                 </div>
             </div>
-            <div class="actions" style="margin-top: 15px;">
+            <div class="actions" style="margin-top: 15px; display: flex; gap: 15px; justify-content: center;">
                 <a id="downloadBtn" class="btn btn-primary" style="text-decoration:none; display:none;">⬇️ Download Processed Video</a>
             </div>
         </div>
@@ -727,21 +783,16 @@
 
         // Initialize overlay size
         function initOverlay() {
-            // Get the actual rendered size of the video element
             const rect = videoElement.getBoundingClientRect();
-            // Set canvas to match the actual rendered video dimensions
             overlay.width = videoElement.videoWidth;
             overlay.height = videoElement.videoHeight;
             videoWidth = overlay.width;
             videoHeight = overlay.height;
-            // Calculate scale factor between rendered and intrinsic size
             displayScale = rect.width / videoElement.videoWidth;
-            // Position the canvas to overlay exactly on the video
             positionCanvas();
             drawOverlay();
         }
 
-        // Position the canvas to exactly match the rendered video position
         function positionCanvas() {
             const wrapperRect = videoWrapper.getBoundingClientRect();
             const videoRect = videoElement.getBoundingClientRect();
@@ -773,13 +824,9 @@
 
             // Darken areas outside crop
             ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-            // Top
             ctx.fillRect(0, 0, overlay.width, crop.y);
-            // Bottom
             ctx.fillRect(0, crop.y + crop.height, overlay.width, overlay.height - crop.y - crop.height);
-            // Left
             ctx.fillRect(0, crop.y, crop.x, crop.height);
-            // Right
             ctx.fillRect(crop.x + crop.width, crop.y, overlay.width - crop.x - crop.width, crop.height);
 
             // Crop border
@@ -787,7 +834,7 @@
             ctx.lineWidth = 2;
             ctx.strokeRect(crop.x, crop.y, crop.width, crop.height);
 
-            // Rule of thirds lines inside crop
+            // Rule of thirds lines
             ctx.strokeStyle = 'rgba(255,255,255,0.2)';
             ctx.lineWidth = 1;
             for (let i = 1; i < 3; i++) {
@@ -811,14 +858,11 @@
             });
 
             // Update value displays
-            document.getElementById('xValue').textContent = Math.round(crop.x);
-            document.getElementById('yValue').textContent = Math.round(crop.y);
             document.getElementById('cropWidthValue').textContent = Math.round(crop.width);
             document.getElementById('cropHeightValue').textContent = Math.round(crop.height);
         }
 
         function getHandles() {
-            const h = 6;
             return [
                 { name: 'nw', x: crop.x, y: crop.y },
                 { name: 'ne', x: crop.x + crop.width, y: crop.y },
@@ -855,7 +899,6 @@
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
 
-            // Check if clicking on a resize handle
             const handle = getHandleFromPos(x, y);
             if (handle) {
                 isResizing = true;
@@ -865,7 +908,6 @@
                 return;
             }
 
-            // Check if clicking inside crop region (start drag)
             if (crop.width > 0 && crop.height > 0 &&
                 x >= crop.x && x <= crop.x + crop.width &&
                 y >= crop.y && y <= crop.y + crop.height) {
@@ -876,7 +918,6 @@
                 return;
             }
 
-            // Start drawing a new crop region
             isDrawing = true;
             startX = x;
             startY = y;
@@ -897,7 +938,6 @@
             } else if (isDrawing) {
                 handleDraw(x, y);
             } else {
-                // Update cursor based on position
                 const handle = getHandleFromPos(x, y);
                 if (handle) {
                     const cursors = {
@@ -928,20 +968,34 @@
         }
 
         function handleDraw(x, y) {
-            const x1 = Math.min(startX, x);
-            const y1 = Math.min(startY, y);
-            const w = Math.abs(x - startX);
-            const h = Math.abs(y - startY);
-
             if (aspectRatio) {
-                const ratio = aspectRatio;
-                crop.width = w;
-                crop.height = w / ratio;
-                if (crop.height < 10) {
-                    crop.height = 10;
-                    crop.width = crop.height * ratio;
+                const centerX = startX;
+                const centerY = startY;
+                const w = Math.abs(x - startX);
+                const h = Math.abs(y - startY);
+
+                let halfW, halfH;
+                if (w / h > aspectRatio) {
+                    halfW = w / 2;
+                    halfH = halfW / aspectRatio;
+                } else {
+                    halfH = h / 2;
+                    halfW = halfH * aspectRatio;
                 }
+
+                if (halfW < 10) halfW = 10;
+                if (halfH < 10) halfH = 10;
+
+                crop.width = halfW * 2;
+                crop.height = halfH * 2;
+                crop.x = centerX - halfW;
+                crop.y = centerY - halfH;
             } else {
+                const x1 = Math.min(startX, x);
+                const y1 = Math.min(startY, y);
+                const w = Math.abs(x - startX);
+                const h = Math.abs(y - startY);
+
                 crop.x = x1;
                 crop.y = y1;
                 crop.width = w;
@@ -956,7 +1010,6 @@
             let newX = x - startX;
             let newY = y - startY;
 
-            // Constrain to video bounds
             newX = Math.max(0, Math.min(newX, videoWidth - crop.width));
             newY = Math.max(0, Math.min(newY, videoHeight - crop.height));
 
@@ -968,77 +1021,103 @@
         function handleResize(x, y) {
             const minSize = 20;
 
-            switch (resizeHandle) {
-                case 'se':
-                    crop.width = x - crop.x;
-                    crop.height = aspectRatio ? (x - crop.x) / aspectRatio : y - crop.y;
-                    break;
-                case 'sw':
-                    const newWsw = crop.x + crop.width - x;
-                    if (newWsw >= minSize) {
-                        crop.x = x;
-                        crop.width = newWsw;
-                    }
-                    crop.height = aspectRatio ? crop.width / aspectRatio : y - crop.y;
-                    break;
-                case 'ne':
-                    crop.width = x - crop.x;
-                    const newHne = crop.y + crop.height - y;
-                    if (newHne >= minSize) {
-                        crop.y = y;
-                        crop.height = newHne;
-                    }
-                    if (aspectRatio) {
-                        crop.height = crop.width / aspectRatio;
-                    }
-                    break;
-                case 'nw':
-                    const newWnw = crop.x + crop.width - x;
-                    const newHnw = crop.y + crop.height - y;
-                    if (newWnw >= minSize && newHnw >= minSize) {
-                        crop.x = x;
-                        crop.y = y;
-                        crop.width = newWnw;
-                        crop.height = aspectRatio ? newWnw / aspectRatio : newHnw;
-                    }
-                    break;
-                case 'n':
-                    const newHn = crop.y + crop.height - y;
-                    if (newHn >= minSize) {
-                        crop.y = y;
-                        crop.height = newHn;
-                        if (aspectRatio) crop.width = crop.height * aspectRatio;
-                    }
-                    break;
-                case 's':
-                    // Bottom-center handle: only change height, keep top edge fixed
-                    const newHs = y - crop.y;
-                    if (newHs >= minSize) {
-                        crop.height = newHs;
-                        if (aspectRatio) {
-                            // Recalculate width from new height: width = height * aspectRatio
-                            const newW = crop.height * aspectRatio;
-                            if (crop.x + newW <= videoWidth + 1) {
-                                crop.width = newW;
-                            } else {
-                                crop.width = Math.max(minSize, videoWidth - crop.x);
-                                crop.height = crop.width * aspectRatio;
-                            }
+            if (aspectRatio) {
+                const centerX = crop.x + crop.width / 2;
+                const centerY = crop.y + crop.height / 2;
+
+                let dx, dy;
+                switch (resizeHandle) {
+                    case 'se': dx = x - centerX; dy = y - centerY; break;
+                    case 'sw': dx = centerX - x; dy = y - centerY; break;
+                    case 'ne': dx = x - centerX; dy = centerY - y; break;
+                    case 'nw': dx = centerX - x; dy = centerY - y; break;
+                    case 'n':  dx = 0; dy = centerY - y; break;
+                    case 's':  dx = 0; dy = y - centerY; break;
+                    case 'w':  dx = centerX - x; dy = 0; break;
+                    case 'e':  dx = x - centerX; dy = 0; break;
+                    default: dx = x - centerX; dy = y - centerY;
+                }
+
+                let halfW = Math.abs(dx);
+                let halfH = Math.abs(dy);
+
+                if (halfW / halfH > aspectRatio || halfH === 0) {
+                    halfW = Math.max(halfW, halfH * aspectRatio);
+                    halfH = halfW / aspectRatio;
+                } else {
+                    halfH = Math.max(halfH, halfW / aspectRatio);
+                    halfW = halfH * aspectRatio;
+                }
+
+                if (halfW < minSize / 2) {
+                    halfW = minSize / 2;
+                    halfH = halfW / aspectRatio;
+                }
+                if (halfH < minSize / 2) {
+                    halfH = minSize / 2;
+                    halfW = halfH * aspectRatio;
+                }
+
+                crop.width = halfW * 2;
+                crop.height = halfH * 2;
+                crop.x = centerX - halfW;
+                crop.y = centerY - halfH;
+            } else {
+                switch (resizeHandle) {
+                    case 'se':
+                        crop.width = x - crop.x;
+                        crop.height = y - crop.y;
+                        break;
+                    case 'sw':
+                        const newWsw = crop.x + crop.width - x;
+                        if (newWsw >= minSize) {
+                            crop.x = x;
+                            crop.width = newWsw;
                         }
-                    }
-                    break;
-                case 'w':
-                    const newWw = crop.x + crop.width - x;
-                    if (newWw >= minSize) {
-                        crop.x = x;
-                        crop.width = newWw;
-                        if (aspectRatio) crop.height = crop.width / aspectRatio;
-                    }
-                    break;
-                case 'e':
-                    crop.width = x - crop.x;
-                    if (aspectRatio) crop.height = crop.width / aspectRatio;
-                    break;
+                        crop.height = y - crop.y;
+                        break;
+                    case 'ne':
+                        crop.width = x - crop.x;
+                        const newHne = crop.y + crop.height - y;
+                        if (newHne >= minSize) {
+                            crop.y = y;
+                            crop.height = newHne;
+                        }
+                        break;
+                    case 'nw':
+                        const newWnw = crop.x + crop.width - x;
+                        const newHnw = crop.y + crop.height - y;
+                        if (newWnw >= minSize && newHnw >= minSize) {
+                            crop.x = x;
+                            crop.y = y;
+                            crop.width = newWnw;
+                            crop.height = newHnw;
+                        }
+                        break;
+                    case 'n':
+                        const newHn = crop.y + crop.height - y;
+                        if (newHn >= minSize) {
+                            crop.y = y;
+                            crop.height = newHn;
+                        }
+                        break;
+                    case 's':
+                        const newHs = y - crop.y;
+                        if (newHs >= minSize) {
+                            crop.height = newHs;
+                        }
+                        break;
+                    case 'w':
+                        const newWw = crop.x + crop.width - x;
+                        if (newWw >= minSize) {
+                            crop.x = x;
+                            crop.width = newWw;
+                        }
+                        break;
+                    case 'e':
+                        crop.width = x - crop.x;
+                        break;
+                }
             }
 
             constrainCrop();
@@ -1053,12 +1132,18 @@
         }
 
         function finalizeCrop() {
-            // Ensure minimum size
             if (crop.width < 20) crop.width = 20;
             if (crop.height < 20) crop.height = 20;
             cropSet = true;
             drawOverlay();
         }
+
+        // Help button toggle
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            const helpContent = document.getElementById('helpContent');
+            helpContent.classList.toggle('active');
+            document.getElementById('helpBtn').textContent = helpContent.classList.contains('active') ? '❌ Close' : '❓ Help';
+        });
 
         // Reset button
         document.getElementById('resetBtn').addEventListener('click', () => {
@@ -1071,8 +1156,6 @@
             activePreset = null;
             ctx.clearRect(0, 0, overlay.width, overlay.height);
             document.getElementById('previewSection').style.display = 'none';
-            document.getElementById('xValue').textContent = '0';
-            document.getElementById('yValue').textContent = '0';
             document.getElementById('cropWidthValue').textContent = '0';
             document.getElementById('cropHeightValue').textContent = '0';
             document.getElementById('setInBtn').classList.remove('active');
@@ -1083,13 +1166,15 @@
             document.getElementById('inTimeDisplay').textContent = 'I: --';
             document.getElementById('outTimeDisplay').textContent = 'O: --';
             document.getElementById('segmentDuration').textContent = 'Δ: 0.0s / 0 frames';
-            document.getElementById('targetSizeValue').textContent = 'Original';
             document.getElementById('customWidth').value = '';
             document.getElementById('customHeight').value = '';
             document.querySelectorAll('.preset-btn[data-w]').forEach(b => b.classList.remove('active'));
             document.getElementById('outputFps').value = '';
             document.getElementById('fpsDisplay').textContent = 'Original';
+            document.getElementById('outputFramesDisplay').textContent = 'Frames: --';
             outputFps = null;
+            document.getElementById('customResPanel').style.display = 'none';
+            document.getElementById('customResBtn').classList.remove('active');
         });
 
         // Aspect ratio buttons
@@ -1104,11 +1189,17 @@
                     const [w, h] = ratioStr.split(':').map(Number);
                     aspectRatio = w / h;
                 }
-                // Re-apply current crop with new ratio
                 if (cropSet && crop.width > 0 && crop.height > 0) {
+                    const centerX = crop.x + crop.width / 2;
+                    const centerY = crop.y + crop.height / 2;
+                    
                     if (aspectRatio) {
                         crop.height = crop.width / aspectRatio;
                     }
+                    
+                    crop.x = centerX - crop.width / 2;
+                    crop.y = centerY - crop.height / 2;
+                    
                     constrainCrop();
                     drawOverlay();
                 }
@@ -1123,9 +1214,10 @@
                 targetWidth = parseInt(btn.dataset.w);
                 targetHeight = parseInt(btn.dataset.h);
                 activePreset = `${targetWidth}×${targetHeight}`;
-                document.getElementById('targetSizeValue').textContent = activePreset;
                 document.getElementById('customWidth').value = '';
                 document.getElementById('customHeight').value = '';
+                document.getElementById('customResPanel').style.display = 'none';
+                document.getElementById('customResBtn').classList.remove('active');
                 
                 // Auto-select aspect ratio based on resolution preset
                 const ratio = targetWidth / targetHeight;
@@ -1156,13 +1248,14 @@
             });
         });
 
-        document.getElementById('applyFps').addEventListener('click', () => {
-            const fpsVal = parseFloat(document.getElementById('outputFps').value);
-            if (fpsVal && fpsVal > 0 && fpsVal <= 120) {
-                outputFps = fpsVal;
-                document.getElementById('fpsDisplay').textContent = fpsVal + ' fps';
-                updateOutputFrames();
-            }
+        // Custom resolution button
+        document.getElementById('customResBtn').addEventListener('click', () => {
+            document.querySelectorAll('.preset-btn[data-w]').forEach(b => b.classList.remove('active'));
+            document.getElementById('customResBtn').classList.add('active');
+            document.getElementById('customResPanel').style.display = 'flex';
+            targetWidth = null;
+            targetHeight = null;
+            activePreset = null;
         });
 
         document.getElementById('applyCustomRes').addEventListener('click', () => {
@@ -1171,9 +1264,18 @@
             if (w && h && w >= 1 && h >= 1 && w <= 4096 && h <= 4096) {
                 targetWidth = w;
                 targetHeight = h;
-                activePreset = null;
-                document.getElementById('targetSizeValue').textContent = `${w}×${h}`;
+                activePreset = `${w}×${h}`;
                 document.querySelectorAll('.preset-btn[data-w]').forEach(b => b.classList.remove('active'));
+                document.getElementById('customResBtn').classList.add('active');
+                updateOutputFrames();
+            }
+        });
+
+        document.getElementById('applyFps').addEventListener('click', () => {
+            const fpsVal = parseFloat(document.getElementById('outputFps').value);
+            if (fpsVal && fpsVal > 0 && fpsVal <= 120) {
+                outputFps = fpsVal;
+                document.getElementById('fpsDisplay').textContent = fpsVal + ' fps';
                 updateOutputFrames();
             }
         });
@@ -1193,7 +1295,6 @@
             }
         }
 
-        // Update output frames when segment changes
         const origUpdateMarkers = updateMarkers;
         updateMarkers = function() {
             origUpdateMarkers();
@@ -1204,7 +1305,6 @@
         function updateMarkers() {
             if (!videoElement.duration) return;
 
-            // Update In marker
             if (inTime !== null) {
                 const pct = (inTime / videoElement.duration) * 100;
                 document.getElementById('markerIn').style.display = 'block';
@@ -1215,7 +1315,6 @@
                 document.getElementById('setInBtn').classList.remove('active');
             }
 
-            // Update Out marker
             if (outTime !== null) {
                 const pct = (outTime / videoElement.duration) * 100;
                 document.getElementById('markerOut').style.display = 'block';
@@ -1226,7 +1325,6 @@
                 document.getElementById('setOutBtn').classList.remove('active');
             }
 
-            // Update region highlight
             if (inTime !== null && outTime !== null) {
                 const leftPct = Math.min((inTime / videoElement.duration) * 100, (outTime / videoElement.duration) * 100);
                 const widthPct = Math.abs((outTime - inTime) / videoElement.duration * 100);
@@ -1239,11 +1337,9 @@
                 document.getElementById('timelineRegion').style.display = 'none';
             }
 
-            // Update displays
             document.getElementById('inTimeDisplay').textContent = inTime !== null ? `I: ${formatTime(inTime)}` : 'I: --';
             document.getElementById('outTimeDisplay').textContent = outTime !== null ? `O: ${formatTime(outTime)}` : 'O: --';
 
-            // Calculate segment duration
             let segDuration = 0;
             let segFrames = 0;
             if (inTime !== null && outTime !== null) {
@@ -1252,6 +1348,23 @@
             }
             document.getElementById('segmentDuration').textContent = `Δ: ${segDuration.toFixed(1)}s / ${segFrames} frames`;
         }
+
+        document.getElementById('playPauseBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (videoElement.paused) {
+                videoElement.play();
+            } else {
+                videoElement.pause();
+            }
+        });
+
+        // Update play/pause button icon when video state changes
+        videoElement.addEventListener('play', () => {
+            document.getElementById('playPauseBtn').textContent = '⏸';
+        });
+        videoElement.addEventListener('pause', () => {
+            document.getElementById('playPauseBtn').textContent = '▶';
+        });
 
         document.getElementById('setInBtn').addEventListener('click', () => {
             if (inTime === videoElement.currentTime) {
@@ -1283,7 +1396,6 @@
         const playbackRates = [0.5, 1, 1.5, 2];
         let currentRateIndex = 1;
 
-        // Format seconds to mm:ss
         function formatTime(seconds) {
             const s = Math.floor(seconds);
             const mins = Math.floor(s / 60);
@@ -1291,33 +1403,30 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Update timeline playhead position
         function updateTimeline() {
             if (videoElement.duration) {
                 const percent = (videoElement.currentTime / videoElement.duration) * 100;
-                timelinePlayhead.style.left = `calc(${percent}% - 6px)`;
+                // -1px offsets the 2px playhead line so its center aligns with the percentage position
+                // (the circle pseudo-element is centered at 1px from element left)
+                timelinePlayhead.style.left = `calc(${percent}% - 1px)`;
                 currentTimeEl.textContent = formatTime(videoElement.currentTime);
             }
         }
 
-        // Update duration once metadata is loaded
         videoElement.addEventListener('loadedmetadata', () => {
             durationTimeEl.textContent = formatTime(videoElement.duration);
         });
 
-        // Update timeline on time update
         videoElement.addEventListener('timeupdate', () => {
             if (!videoElement.seeking) {
                 updateTimeline();
             }
         });
 
-        // Reposition canvas when video render state changes
         videoElement.addEventListener('resize', () => {
             positionCanvas();
         });
 
-        // Click on timeline to seek
         timelineContainer.addEventListener('click', (e) => {
             const rect = timelineContainer.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -1325,7 +1434,6 @@
             videoElement.currentTime = percent * videoElement.duration;
         });
 
-        // Timeline hover preview (no thumbnails, just timestamp)
         let hoverIndicatorEl = null;
 
         function getHoverIndicator() {
@@ -1369,7 +1477,6 @@
             }
         });
 
-        // Speed display click to cycle speeds
         speedDisplayEl.addEventListener('click', () => {
             currentRateIndex = (currentRateIndex + 1) % playbackRates.length;
             playbackRate = playbackRates[currentRateIndex];
@@ -1377,7 +1484,6 @@
             speedDisplayEl.textContent = playbackRate + 'x';
         });
 
-        // Show skip indicator overlay
         function showSkipIndicator(text) {
             skipOverlay.textContent = text;
             skipOverlay.classList.add('visible');
@@ -1388,7 +1494,6 @@
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Don't capture keys when focused on inputs
             if (e.target.tagName === 'INPUT') return;
 
             switch (e.key.toLowerCase()) {
@@ -1459,7 +1564,6 @@
                 return;
             }
 
-            // Show processing overlay
             document.getElementById('processingOverlay').classList.add('active');
 
             const filename = '{{ filename }}';
@@ -1492,17 +1596,14 @@
                     return;
                 }
 
-                // Show preview
                 document.getElementById('previewSection').style.display = 'block';
                 document.getElementById('originalPreview').src = `/watch/${filename}`;
                 
-                // The processed video is in the output folder, use the download link
                 const downloadBtn = document.getElementById('downloadBtn');
                 downloadBtn.href = `/download/${result.filename}`;
                 downloadBtn.style.display = 'inline-block';
                 downloadBtn.dataset.filename = result.filename;
 
-                // Load processed video preview
                 setTimeout(() => {
                     document.getElementById('processedPreview').src = `/download/${result.filename}?t=${Date.now()}`;
                 }, 500);
@@ -1523,7 +1624,6 @@
             setTimeout(() => { el.style.display = 'none'; }, 5000);
         }
 
-        // Enter key to apply crop when crop is set
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && cropSet && e.target.tagName !== 'INPUT') {
                 document.getElementById('cropBtn').click();
