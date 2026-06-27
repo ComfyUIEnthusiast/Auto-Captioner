@@ -46,13 +46,14 @@ def index():
     videos = get_video_files()
     return render_template('index.html', videos=videos)
 
-# --- Crop page ---
-@app.route('/crop')
-def crop():
-    videos = get_video_files()
-    filename = request.args.get('file', '')
-    return render_template('crop.html', videos=videos, filename=filename)
+# --- API config endpoint ---
+@app.route('/api/config')
+def api_config():
+    return jsonify({
+        'openai_url': Config.OPENAI_URL
+    })
 
+# --- Crop page ---
 
 # --- Upload endpoint ---
 @app.route('/upload', methods=['POST'])

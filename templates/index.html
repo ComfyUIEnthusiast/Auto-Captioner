@@ -149,6 +149,27 @@
         .caption-progress p {
             color: #888;
         }
+
+        /* Captioner video preview */
+        .captioner-video-preview {
+            margin: 15px 0;
+            padding: 15px;
+            background: #0f0f1a;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .captioner-video-preview video {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 4px;
+        }
+
+        .captioner-video-preview .video-name {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -201,6 +222,7 @@
                         <div class="video-info">
                             <p class="video-name">{{ video }}</p>
                             <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
+                            <a href="/caption?file={{ video }}" class="edit-btn caption-btn">🤖 Caption</a>
                             <a href="/download/{{ video }}" class="download-btn">⬇️ Download</a>
                         </div>
                     </div>
@@ -213,6 +235,12 @@
         <!-- Tab 2: Video Captioner -->
         <div class="tab-content" id="captioner-tab">
             <div class="captioner-controls">
+                <!-- Video preview -->
+                <div id="captionerVideoPreview" class="captioner-video-preview" style="display:none;">
+                    <video id="captionerVideo" controls muted></video>
+                    <p class="video-name" id="captionerVideoName"></p>
+                </div>
+
                 <div class="caption-upload-section">
                     <div class="upload-area" id="captionerUploadArea">
                         <div class="upload-icon">📁</div>
@@ -234,7 +262,7 @@
 
                 <label>OpenAI API URL</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="openaiUrl" value="http://host.docker.internal:11434/v1" placeholder="http://host.docker.internal:11434/v1" style="flex: 1;">
+                    <input type="text" id="openaiUrl" value="" placeholder="http://127.0.0.1:11434/v1" style="flex: 1;">
                     <button class="btn btn-secondary" id="fetchModelsBtn" style="white-space: nowrap;">🔄 Fetch Models</button>
                 </div>
 
@@ -274,6 +302,24 @@
     </div>
 
     <script>
+        let captionerFilename = null;
+        let captionerVideoUrl = null;
+
+        // ========================
+        // Load config from backend
+        // ========================
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                document.getElementById('openaiUrl').value = config.openai_url || 'http://127.0.0.1:11434/v1';
+            } catch (err) {
+                console.error('Failed to load config:', err);
+                document.getElementById('openaiUrl').value = 'http://127.0.0.1:11434/v1';
+            }
+        }
+        loadConfig();
+
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -343,6 +389,65 @@
 
         setupDragDrop(uploadArea, fileInput, handleCropperUpload);
 
+        // Caption button on cropper tab video cards
+        document.querySelectorAll('.caption-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const file = new URLSearchParams(window.location.search).get('file') || '';
+                const href = btn.getAttribute('href');
+                const match = href.match(/\/caption\?file=(.+)/);
+                if (match) {
+                    const filename = decodeURIComponent(match[1]);
+                    loadVideoToCaptioner(filename);
+                }
+            });
+        });
+
+        // Also capture caption links via event delegation
+        document.querySelector('#cropper-tab .video-grid')?.addEventListener('click', (e) => {
+            const captionBtn = e.target.closest('.caption-btn');
+            if (captionBtn) {
+                e.preventDefault();
+                const filename = captionBtn.getAttribute('href')?.split('file=')[1];
+                if (filename) loadVideoToCaptioner(decodeURIComponent(filename));
+            }
+        });
+
+        // ============================
+        // Load video into captioner
+        // ============================
+        async function loadVideoToCaptioner(filename) {
+            // Switch to captioner tab
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('[data-tab="captioner"]').classList.add('active');
+            document.getElementById('captioner-tab').classList.add('active');
+
+            captionerFilename = filename;
+
+            // Show video preview
+            const preview = document.getElementById('captionerVideoPreview');
+            const video = document.getElementById('captionerVideo');
+            const nameEl = document.getElementById('captionerVideoName');
+
+            video.src = `/watch/${filename}`;
+            nameEl.textContent = filename;
+            preview.style.display = 'block';
+
+            // Hide upload area since we have a video
+            document.getElementById('captionerUploadArea').style.display = 'none';
+            showStatus(`Loaded: ${filename}`, 'success');
+        }
+
+        // Caption button on cropper tab video cards (event delegation)
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('caption-btn')) {
+                e.preventDefault();
+                const filename = e.target.getAttribute('href')?.split('file=')[1];
+                if (filename) loadVideoToCaptioner(decodeURIComponent(filename));
+            }
+        });
+
         // ============================
         // Captioner Tab Upload Logic
         // ============================
@@ -351,7 +456,6 @@
         const captionerUploadProgress = document.getElementById('captionerUploadProgress');
         const captionerProgressFill = document.getElementById('captionerProgressFill');
         const captionerProgressText = document.getElementById('captionerProgressText');
-        let captionerFilename = null;
 
         function handleCaptionerUpload(file) {
             if (!file.type.startsWith('video/')) {
@@ -414,7 +518,7 @@
         // Analyze button
         document.getElementById('analyzeBtn').addEventListener('click', async () => {
             if (!captionerFilename) {
-                showStatus('Please upload a video first.', 'error');
+                showStatus('Please upload or select a video first.', 'error');
                 return;
             }
             const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
@@ -449,27 +553,47 @@
 
                 captionStatusText.textContent = 'Sending to AI for analysis...';
 
-                // Step 2: Send to AI for analysis
+                // Step 2: Send to AI for analysis directly from browser
                 const model = document.getElementById('modelSelect').value || 'default';
-                const analyzeResponse = await fetch('/analyze_video', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        api_url: openaiUrl,
-                        model: model,
-                        filename: captionerFilename,
-                        frames: extractResult.frames,
-                        prompt: prompt
-                    })
-                });
-                const analyzeResult = await analyzeResponse.json();
-                if (analyzeResult.error) {
-                    throw new Error(analyzeResult.error);
+                
+                // Build the message content with text and images
+                const content = [
+                    { type: "text", text: prompt }
+                ];
+                for (const frame of extractResult.frames) {
+                    content.push({ type: "image_url", image_url: { url: frame } });
                 }
 
+                const apiPayload = {
+                    model: model,
+                    messages: [{ role: "user", content: content }],
+                    max_tokens: 4096,
+                    temperature: 0.1
+                };
+
+                // Determine API endpoint
+                let apiEndpoint = openaiUrl;
+                if (!apiEndpoint.includes('/chat/completions')) {
+                    apiEndpoint = apiEndpoint.replace(/\/+$/, '') + '/chat/completions';
+                }
+
+                const analyzeResponse = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiPayload)
+                });
+
+                if (!analyzeResponse.ok) {
+                    const errorText = await analyzeResponse.text();
+                    throw new Error(`API request failed with status ${analyzeResponse.status}: ${errorText}`);
+                }
+
+                const analyzeResult = await analyzeResponse.json();
+                const responseText = analyzeResult?.choices?.[0]?.message?.content || 'No response from API';
+
                 captionStatusText.textContent = 'Complete!';
-                captionResultText.textContent = analyzeResult.response;
-                lastCaption = analyzeResult.response;
+                captionResultText.textContent = responseText;
+                lastCaption = responseText;
                 const baseName = captionerFilename ? captionerFilename.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '') : 'caption';
                 lastVideoName = baseName + '.txt';
                 captionResult.style.display = 'block';

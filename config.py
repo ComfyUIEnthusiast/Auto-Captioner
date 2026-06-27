@@ -5,6 +5,7 @@ class Config:
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'uploads')
     OUTPUT_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'output')
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 * 1024  # 2 GB max upload
+    OPENAI_URL = os.environ.get('OPENAI_URL', 'http://127.0.0.1:11434/v1')
     
     # Supported video formats
     ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'wmv'}
