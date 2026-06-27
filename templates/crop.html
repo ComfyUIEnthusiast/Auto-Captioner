@@ -585,7 +585,7 @@
             <p><strong>2. Set In/Out markers:</strong> Play the video and press <kbd>I</kbd> to set In point, <kbd>O</kbd> to set Out point. Only the selected segment will be processed.</p>
             <p><strong>Jump to markers:</strong> Press <kbd>Shift</kbd>+<kbd>I</kbd> to jump playhead to In point, <kbd>Shift</kbd>+<kbd>O</kbd> to jump to Out point.</p>
             <p><strong>3. Choose output resolution:</strong> Select a preset or enter custom resolution on the left panel.</p>
-            <p><strong>Navigate:</strong> Click the timeline, or use keyboard: <kbd>←</kbd> <kbd>→</kbd> seek ±5s, <kbd>Space</kbd> play/pause, <kbd>j</kbd>/<kbd>k</kbd> seek ±3s slowly, <kbd>,</kbd>/<kbd>.</kbd> seek ±1 frame.</p>
+            <p><strong>Navigate:</strong> Click the timeline, or use keyboard: <kbd>←</kbd> <kbd>→</kbd> seek ±5s, <kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> jump between waypoints (start, markers, end), <kbd>Space</kbd> play/pause, <kbd>j</kbd>/<kbd>k</kbd> seek ±3s slowly, <kbd>,</kbd>/<kbd>.</kbd> seek ±1 frame.</p>
         </div>
 
         <!-- Video Selection (if no file param) -->
@@ -1662,13 +1662,59 @@
             switch (e.key.toLowerCase()) {
                 case 'arrowright':
                     e.preventDefault();
-                    videoElement.currentTime = Math.min(videoElement.duration || 0, videoElement.currentTime + 5);
-                    showSkipIndicator('+5s');
+                    if (e.shiftKey) {
+                        // Shift+Right: jump to next waypoint (start → in → out → end → start)
+                        const duration = videoElement.duration || 0;
+                        const current = videoElement.currentTime;
+                        const waypoints = [
+                            { time: 0, label: 'Start' },
+                            ...(inTime !== null ? [{ time: inTime, label: 'In' }] : []),
+                            ...(outTime !== null ? [{ time: outTime, label: 'Out' }] : []),
+                            { time: duration, label: 'End' }
+                        ];
+                        // Find current waypoint index (round up to nearest)
+                        let currentIdx = 0;
+                        for (let i = 0; i < waypoints.length; i++) {
+                            if (current >= waypoints[i].time - 0.05) {
+                                currentIdx = i;
+                            }
+                        }
+                        // Jump to next waypoint (wrap around)
+                        const nextIdx = (currentIdx + 1) % waypoints.length;
+                        videoElement.currentTime = waypoints[nextIdx].time;
+                        showSkipIndicator(waypoints[nextIdx].label);
+                    } else {
+                        videoElement.currentTime = Math.min(videoElement.duration || 0, videoElement.currentTime + 5);
+                        showSkipIndicator('+5s');
+                    }
                     break;
                 case 'arrowleft':
                     e.preventDefault();
-                    videoElement.currentTime = Math.max(0, videoElement.currentTime - 5);
-                    showSkipIndicator('-5s');
+                    if (e.shiftKey) {
+                        // Shift+Left: jump to previous waypoint
+                        const duration = videoElement.duration || 0;
+                        const current = videoElement.currentTime;
+                        const waypoints = [
+                            { time: 0, label: 'Start' },
+                            ...(inTime !== null ? [{ time: inTime, label: 'In' }] : []),
+                            ...(outTime !== null ? [{ time: outTime, label: 'Out' }] : []),
+                            { time: duration, label: 'End' }
+                        ];
+                        // Find current waypoint index (round up to nearest)
+                        let currentIdx = 0;
+                        for (let i = 0; i < waypoints.length; i++) {
+                            if (current >= waypoints[i].time - 0.05) {
+                                currentIdx = i;
+                            }
+                        }
+                        // Jump to previous waypoint (wrap around)
+                        const prevIdx = (currentIdx - 1 + waypoints.length) % waypoints.length;
+                        videoElement.currentTime = waypoints[prevIdx].time;
+                        showSkipIndicator(waypoints[prevIdx].label);
+                    } else {
+                        videoElement.currentTime = Math.max(0, videoElement.currentTime - 5);
+                        showSkipIndicator('-5s');
+                    }
                     break;
                 case ' ':
                     e.preventDefault();
