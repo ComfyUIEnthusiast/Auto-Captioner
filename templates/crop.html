@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop Video</title>
+    <title>Video Cropper</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         .crop-container {
@@ -572,10 +572,9 @@
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-link">← Back to Upload</a>
+        <a href="/" class="back-link">← Back to Video Selection</a>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <h1>✂️ Crop & Process Video</h1>
+        <h1>✂️ Video Cropper</h1>
             <button class="help-btn" id="helpBtn">❓ Help</button>
         </div>
 
@@ -604,6 +603,7 @@
                     <div class="video-info">
                         <p class="video-name">{{ video }}</p>
                         <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
+                        <a href="/caption?file={{ video }}" class="edit-btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">🤖 Caption</a>
                     </div>
                 </div>
                 {% endfor %}

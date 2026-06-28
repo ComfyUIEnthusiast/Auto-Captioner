@@ -59,6 +59,20 @@ def api_videos():
     videos = get_video_files()
     return jsonify({'videos': videos})
 
+# --- Caption page (standalone) ---
+@app.route('/caption')
+def caption_page():
+    filename = request.args.get('file')
+    if not filename:
+        videos = get_video_files()
+        return render_template('caption.html', filename=None, videos=videos)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'Video not found'}), 404
+    videos = get_video_files()
+    return render_template('caption.html', filename=filename, videos=videos)
+
+
 # --- Crop page (GET: render form) ---
 @app.route('/crop', methods=['GET'])
 def crop_page():

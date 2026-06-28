@@ -3,484 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Tools</title>
+    <title>Video Selection</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        /* Tab styles */
-        .tab-nav {
-            display: flex;
-            gap: 0;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #2a2a3e;
-        }
-
-        .tab-btn {
-            padding: 12px 30px;
-            background: #1a1a2e;
-            color: #888;
-            border: none;
-            border-radius: 8px 8px 0 0;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            margin-right: 5px;
-        }
-
-        .tab-btn:hover {
-            background: #22223a;
-            color: #bbb;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Captioner specific styles */
-        .captioner-controls {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 20px 0;
-        }
-
-        .captioner-controls label {
-            font-size: 0.85rem;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .captioner-controls input[type="text"],
-        .captioner-controls textarea {
-            width: 100%;
-            background: #2a2a3e;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-family: inherit;
-            margin-bottom: 15px;
-        }
-
-        .captioner-controls input[type="text"]:focus,
-        .captioner-controls textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .captioner-controls textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .captioner-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .caption-result {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .caption-result h3 {
-            color: #fff;
-            margin-bottom: 15px;
-        }
-
-        .caption-result pre {
-            background: #0f0f1a;
-            padding: 15px;
-            border-radius: 8px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: #ccc;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .caption-upload-section {
-            margin-bottom: 20px;
-        }
-
-        .caption-progress {
-            display: none;
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .caption-progress.active {
-            display: block;
-        }
-
-        .caption-progress .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #2a2a3e;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        .caption-progress p {
-            color: #888;
-        }
-
-        /* Captioner video preview */
-        .captioner-video-preview {
-            margin: 15px 0;
-            padding: 15px;
-            background: #0f0f1a;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .captioner-video-preview video {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 4px;
-        }
-
-        .captioner-video-preview .video-name {
-            color: #888;
-            font-size: 0.85rem;
-            margin-top: 8px;
-        }
-
-        /* Num frames control */
-        .num-frames-control {
-            margin-bottom: 15px;
-        }
-
-        .num-frames-control input[type="number"] {
-            width: 100px;
-            background: #2a2a3e;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-family: inherit;
-        }
-
-        .num-frames-control input[type="number"]:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        /* Extracted frames gallery */
-        .frames-gallery {
-            margin-top: 20px;
-            padding: 15px;
-            background: #0f0f1a;
-            border-radius: 8px;
-        }
-
-        .frames-gallery h4 {
-            color: #888;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 15px;
-        }
-
-        .frames-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .frames-grid .frame-item {
-            background: #1a1a2e;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #2a2a3e;
-        }
-
-        .frames-grid .frame-item img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .frames-grid .frame-item .frame-label {
-            padding: 8px;
-            text-align: center;
-            color: #888;
-            font-size: 0.8rem;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎬 Video Tools</h1>
-            <p>Upload a video, crop it, or get AI analysis</p>
+            <h1>📹 Video Selection</h1>
+            <p>Upload a video or select one from the library below</p>
         </header>
 
-        <!-- Tab Navigation -->
-        <div class="tab-nav">
-            <button class="tab-btn active" data-tab="cropper">🎬 Video Cropper</button>
-            <button class="tab-btn" data-tab="captioner">🤖 Video Captioner</button>
-        </div>
-
-        <!-- Tab 1: Video Cropper -->
-        <div class="tab-content active" id="cropper-tab">
-            <!-- Upload Section -->
-            <section class="upload-section" id="uploadSection">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📁</div>
-                    <h2>Drop your video here</h2>
-                    <p>or</p>
-                    <label class="browse-btn">
-                        Browse Files
-                        <input type="file" id="fileInput" accept="video/*" hidden>
-                    </label>
-                    <p class="formats">Supported: MP4, AVI, MOV, MKV, WebM, FLV, WMV</p>
-                </div>
-                <div class="upload-progress" id="uploadProgress" style="display:none;">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <p id="progressText">Uploading...</p>
-                </div>
-            </section>
-
-            <!-- Videos List -->
-            {% if videos %}
-            <section class="videos-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <h2>Uploaded Videos</h2>
-                    <button class="btn btn-secondary" id="deleteAllBtn" style="padding: 6px 14px; font-size: 0.85rem; background: rgba(231,76,60,0.2); color: #e74c3c;">🗑️ Delete All</button>
-                </div>
-                <div class="video-grid">
-                    {% for video in videos %}
-                    <div class="video-card">
-                        <div class="video-thumbnail">
-                            <video muted preload="metadata">
-                                <source src="/watch/{{ video }}" type="video/mp4">
-                            </video>
-                        </div>
-                        <div class="video-info">
-                            <p class="video-name">{{ video }}</p>
-                            <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
-                            <a href="/caption?file={{ video }}" class="edit-btn caption-btn">🤖 Caption</a>
-                            <a href="/download/{{ video }}" class="download-btn">⬇️ Download</a>
-                            <button class="delete-video-btn" style="background: rgba(231,76,60,0.15); color: #e74c3c; padding: 6px 12px; border: 1px solid #e74c3c; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-top: 5px;" data-filename="{{ video }}">🗑️ Delete</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
-        </div>
-
-        <!-- Tab 2: Video Captioner -->
-        <div class="tab-content" id="captioner-tab">
-            <div class="captioner-controls">
-                <!-- Video selector dropdown -->
-                <div id="videoSelectorContainer" style="margin-bottom: 20px;">
-                    <label>Select Existing Video</label>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="videoSelectDropdown" style="flex: 1; background: #2a2a3e; border: 1px solid #444; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem;">
-                            <option value="">-- Upload a new video below --</option>
-                        </select>
-                        <button class="btn btn-secondary" id="refreshVideosBtn" style="white-space: nowrap;">🔄 Refresh</button>
-                    </div>
-                </div>
-
-                <!-- Video preview -->
-                <div id="captionerVideoPreview" class="captioner-video-preview" style="display:none;">
-                    <video id="captionerVideo" controls muted></video>
-                    <p class="video-name" id="captionerVideoName"></p>
-                    <button class="btn btn-secondary" id="changeVideoBtn" style="margin-top: 10px;">🔄 Change Video</button>
-                </div>
-
-                <div class="caption-upload-section">
-                    <div class="upload-area" id="captionerUploadArea">
-                        <div class="upload-icon">📁</div>
-                        <h2>Drop your video here</h2>
-                        <p>or</p>
-                        <label class="browse-btn">
-                            Browse Files
-                            <input type="file" id="captionerFileInput" accept="video/*" hidden>
-                        </label>
-                        <p class="formats">Supported: MP4, AVI, MOV, MKV, WebM, FLV, WMV</p>
-                    </div>
-                    <div class="upload-progress" id="captionerUploadProgress" style="display:none;">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="captionerProgressFill"></div>
-                        </div>
-                        <p id="captionerProgressText">Uploading...</p>
-                    </div>
-                </div>
-
-                <label>OpenAI API URL</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="openaiUrl" value="" placeholder="http://127.0.0.1:11434/v1" style="flex: 1;">
-                    <button class="btn btn-secondary" id="fetchModelsBtn" style="white-space: nowrap;">🔄 Fetch Models</button>
-                </div>
-
-                <label>Model</label>
-                <select id="modelSelect" style="width: 100%; background: #2a2a3e; border: 1px solid #444; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; margin-bottom: 15px;">
-                    <option value="">-- No models loaded --</option>
-                </select>
-
-                <label>Analysis Prompt</label>
-                <textarea id="analysisPrompt" placeholder="Describe what you want the AI to analyze or generate from the video frames...">Analyze this video and provide a detailed summary of the key events, objects, and actions shown.</textarea>
-
-                <div class="num-frames-control">
-                    <label>Number of Frames to Extract</label>
-                    <input type="number" id="numFrames" value="10" min="1" max="100" step="1">
-                </div>
-
-                <div class="captioner-actions">
-                    <button class="btn btn-primary" id="analyzeBtn">🤖 Analyze Video</button>
-                    <button class="btn btn-secondary" id="downloadCaptionBtn" style="display:none;">⬇️ Download Caption</button>
-                </div>
+        <!-- Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h2>Drop your video here</h2>
+                <p>or</p>
+                <label class="browse-btn">
+                    Browse Files
+                    <input type="file" id="fileInput" accept="video/*" hidden>
+                </label>
+                <p class="formats">Supported: MP4, AVI, MOV, MKV, WebM, FLV, WMV</p>
             </div>
-
-            <!-- Caption Progress -->
-            <div class="caption-progress" id="captionProgress">
-                <div class="spinner"></div>
-                <h3>Processing Video...</h3>
-                <p id="captionStatusText">Extracting frames...</p>
-            </div>
-
-            <!-- Caption Result -->
-            <div class="caption-result" id="captionResult">
-                <h3>AI Analysis Result</h3>
-                <pre id="captionResultText"></pre>
-                <div class="captioner-actions" style="margin-top: 15px;">
-                    <button class="btn btn-secondary" id="downloadCaptionBtn2" style="display:none;">⬇️ Download Caption as .txt</button>
+            <div class="upload-progress" id="uploadProgress" style="display:none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
+                <p id="progressText">Uploading...</p>
             </div>
+        </section>
 
-            <!-- Extracted Frames Gallery -->
-            <div class="frames-gallery" id="framesGallery" style="display:none;">
-                <h4>Extracted Frames</h4>
-                <div class="frames-grid" id="framesGrid"></div>
+        <!-- Videos List -->
+        {% if videos %}
+        <section class="videos-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h2>Uploaded Videos</h2>
+                <button class="btn btn-secondary" id="deleteAllBtn" style="padding: 6px 14px; font-size: 0.85rem; background: rgba(231,76,60,0.2); color: #e74c3c;">🗑️ Delete All</button>
             </div>
-        </div>
+            <div class="video-grid">
+                {% for video in videos %}
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <video muted preload="metadata">
+                            <source src="/watch/{{ video }}" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-info">
+                        <p class="video-name">{{ video }}</p>
+                        <a href="/crop?file={{ video }}" class="edit-btn">✂️ Crop</a>
+                        <a href="/caption?file={{ video }}" class="edit-btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">🤖 Caption</a>
+                        <a href="/download/{{ video }}" class="download-btn">⬇️ Download</a>
+                        <button class="delete-video-btn" style="background: rgba(231,76,60,0.15); color: #e74c3c; padding: 6px 12px; border: 1px solid #e74c3c; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-top: 5px;" data-filename="{{ video }}">🗑️ Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
 
         <!-- Status Messages -->
         <div class="status-message" id="statusMessage"></div>
     </div>
 
     <script>
-        let captionerFilename = null;
-        let captionerVideoUrl = null;
-
-        // ========================
-        // LocalStorage Persistence
-        // ========================
-        const STORAGE_KEYS = {
-            OPENAI_URL: 'captioner_openai_url',
-            MODEL: 'captioner_model',
-            PROMPT: 'captioner_prompt',
-            NUM_FRAMES: 'captioner_num_frames'
-        };
-
-        function loadFromStorage() {
-            const openaiUrl = localStorage.getItem(STORAGE_KEYS.OPENAI_URL);
-            if (openaiUrl) {
-                document.getElementById('openaiUrl').value = openaiUrl;
-            }
-            const model = localStorage.getItem(STORAGE_KEYS.MODEL);
-            if (model) {
-                document.getElementById('modelSelect').value = model;
-            }
-            const prompt = localStorage.getItem(STORAGE_KEYS.PROMPT);
-            if (prompt) {
-                document.getElementById('analysisPrompt').value = prompt;
-            }
-            const numFrames = localStorage.getItem(STORAGE_KEYS.NUM_FRAMES);
-            if (numFrames) {
-                document.getElementById('numFrames').value = numFrames;
-            }
-        }
-
-        function saveToStorage(key, value) {
-            localStorage.setItem(key, value);
-        }
-
-        // Load saved values on page load
-        loadFromStorage();
-
-        // Save values when they change
-        document.getElementById('openaiUrl').addEventListener('input', function() {
-            saveToStorage(STORAGE_KEYS.OPENAI_URL, this.value);
-        });
-
-        document.getElementById('modelSelect').addEventListener('change', function() {
-            saveToStorage(STORAGE_KEYS.MODEL, this.value);
-        });
-
-        document.getElementById('analysisPrompt').addEventListener('input', function() {
-            saveToStorage(STORAGE_KEYS.PROMPT, this.value);
-        });
-
-        document.getElementById('numFrames').addEventListener('input', function() {
-            saveToStorage(STORAGE_KEYS.NUM_FRAMES, this.value);
-        });
-
-        // ========================
-        // Load config from backend
-        // ========================
-        async function loadConfig() {
-            try {
-                const response = await fetch('/api/config');
-                const config = await response.json();
-                const openaiUrlInput = document.getElementById('openaiUrl');
-                // Only use backend config if localStorage is empty
-                if (!localStorage.getItem(STORAGE_KEYS.OPENAI_URL) && (config.openai_url || 'http://127.0.0.1:11434/v1')) {
-                    openaiUrlInput.value = config.openai_url || 'http://127.0.0.1:11434/v1';
-                    saveToStorage(STORAGE_KEYS.OPENAI_URL, openaiUrlInput.value);
-                }
-            } catch (err) {
-                console.error('Failed to load config:', err);
-            }
-        }
-        loadConfig();
-
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
-            });
-        });
-
-        // ========================
-        // Cropper Tab Upload Logic
-        // ========================
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const uploadProgress = document.getElementById('uploadProgress');
@@ -509,7 +94,7 @@
             });
         }
 
-        function handleCropperUpload(file) {
+        function handleUpload(file) {
             if (!file.type.startsWith('video/')) {
                 showStatus('Please select a valid video file.', 'error');
                 return;
@@ -535,307 +120,7 @@
                 });
         }
 
-        setupDragDrop(uploadArea, fileInput, handleCropperUpload);
-
-        // Caption button on cropper tab video cards
-        document.querySelectorAll('.caption-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const file = new URLSearchParams(window.location.search).get('file') || '';
-                const href = btn.getAttribute('href');
-                const match = href.match(/\/caption\?file=(.+)/);
-                if (match) {
-                    const filename = decodeURIComponent(match[1]);
-                    loadVideoToCaptioner(filename);
-                }
-            });
-        });
-
-        // Also capture caption links via event delegation
-        document.querySelector('#cropper-tab .video-grid')?.addEventListener('click', (e) => {
-            const captionBtn = e.target.closest('.caption-btn');
-            if (captionBtn) {
-                e.preventDefault();
-                const filename = captionBtn.getAttribute('href')?.split('file=')[1];
-                if (filename) loadVideoToCaptioner(decodeURIComponent(filename));
-            }
-        });
-
-        // Use the /api/videos endpoint to get the list
-        let allVideos = [];
-        async function fetchVideoList() {
-            try {
-                const response = await fetch('/api/videos');
-                const data = await response.json();
-                allVideos = data.videos || [];
-                updateVideoDropdown();
-            } catch (err) {
-                console.error('Failed to fetch video list:', err);
-            }
-        }
-
-        function updateVideoDropdown() {
-            const select = document.getElementById('videoSelectDropdown');
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">-- Upload a new video below --</option>';
-            allVideos.forEach(video => {
-                const option = document.createElement('option');
-                option.value = video;
-                option.textContent = video;
-                select.appendChild(option);
-            });
-            // Restore selection if still valid
-            if (currentValue && allVideos.includes(currentValue)) {
-                select.value = currentValue;
-            }
-        }
-
-        // Refresh videos button
-        document.getElementById('refreshVideosBtn')?.addEventListener('click', () => {
-            location.reload();
-        });
-
-        // Video select dropdown change handler
-        document.getElementById('videoSelectDropdown')?.addEventListener('change', function() {
-            if (this.value) {
-                loadVideoToCaptioner(this.value);
-            }
-        });
-
-        // Change video button - resets to upload state
-        document.getElementById('changeVideoBtn')?.addEventListener('click', () => {
-            captionerFilename = null;
-            document.getElementById('captionerVideoPreview').style.display = 'none';
-            document.getElementById('captionerUploadArea').style.display = 'block';
-            document.getElementById('videoSelectDropdown').value = '';
-            showStatus('You can now upload a new video or select one from the list.', 'success');
-        });
-
-        // ============================
-        // Load video into captioner
-        // ============================
-        async function loadVideoToCaptioner(filename) {
-            captionerFilename = filename;
-
-            // Update dropdown selection
-            const dropdown = document.getElementById('videoSelectDropdown');
-            if (dropdown) {
-                dropdown.value = filename;
-            }
-
-            // Show video preview
-            const preview = document.getElementById('captionerVideoPreview');
-            const video = document.getElementById('captionerVideo');
-            const nameEl = document.getElementById('captionerVideoName');
-
-            video.src = `/watch/${filename}`;
-            nameEl.textContent = filename;
-            preview.style.display = 'block';
-
-            // Hide upload area since we have a video
-            document.getElementById('captionerUploadArea').style.display = 'none';
-            showStatus(`Loaded: ${filename}`, 'success');
-        }
-
-        // Caption button on cropper tab video cards (event delegation)
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('caption-btn')) {
-                e.preventDefault();
-                const filename = e.target.getAttribute('href')?.split('file=')[1];
-                if (filename) loadVideoToCaptioner(decodeURIComponent(filename));
-            }
-        });
-
-        // Refresh video list when switching to captioner tab
-        document.querySelector('[data-tab="captioner"]')?.addEventListener('click', () => {
-            setTimeout(fetchVideoList, 100);
-        });
-
-        // ============================
-        // Captioner Tab Upload Logic
-        // ============================
-        const captionerUploadArea = document.getElementById('captionerUploadArea');
-        const captionerFileInput = document.getElementById('captionerFileInput');
-        const captionerUploadProgress = document.getElementById('captionerUploadProgress');
-        const captionerProgressFill = document.getElementById('captionerProgressFill');
-        const captionerProgressText = document.getElementById('captionerProgressText');
-
-        function handleCaptionerUpload(file) {
-            if (!file.type.startsWith('video/')) {
-                showStatus('Please select a valid video file.', 'error');
-                return;
-            }
-            captionerUploadArea.style.display = 'none';
-            captionerUploadProgress.style.display = 'block';
-            captionerProgressFill.style.width = '0%';
-            captionerProgressText.textContent = 'Uploading...';
-            const formData = new FormData();
-            formData.append('video', file);
-            fetch('/upload', { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(data => {
-                    captionerProgressFill.style.width = '100%';
-                    captionerProgressText.textContent = 'Upload complete!';
-                    captionerFilename = data.filename;
-                    showStatus('Video uploaded successfully!', 'success');
-                })
-                .catch(err => {
-                    showStatus('Upload failed: ' + err.message, 'error');
-                    captionerUploadArea.style.display = 'block';
-                    captionerUploadProgress.style.display = 'none';
-                });
-        }
-
-        setupDragDrop(captionerUploadArea, captionerFileInput, handleCaptionerUpload);
-
-        // Fetch models button
-        document.getElementById('fetchModelsBtn').addEventListener('click', async () => {
-            const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
-            const modelSelect = document.getElementById('modelSelect');
-            try {
-                const response = await fetch(`${openaiUrl}/models`, { signal: AbortSignal.timeout(10000) });
-                const data = await response.json();
-                modelSelect.innerHTML = '';
-                if (data.data && data.data.length > 0) {
-                    data.data.forEach(model => {
-                        const option = document.createElement('option');
-                        option.value = model.id;
-                        option.textContent = model.id;
-                        modelSelect.appendChild(option);
-                    });
-                    modelSelect.value = modelSelect.options[0].value;
-                    showStatus(`Loaded ${data.data.length} models`, 'success');
-                } else {
-                    modelSelect.innerHTML = '<option value="">-- No models found --</option>';
-                    showStatus('No models found at this URL', 'error');
-                }
-            } catch (err) {
-                modelSelect.innerHTML = '<option value="">-- Failed to load models --</option>';
-                showStatus('Failed to connect. Check URL and port.', 'error');
-            }
-        });
-
-        let lastCaption = '';
-        let lastVideoName = '';
-
-        // Analyze button
-        document.getElementById('analyzeBtn').addEventListener('click', async () => {
-            if (!captionerFilename) {
-                showStatus('Please upload or select a video first.', 'error');
-                return;
-            }
-            const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
-            const prompt = document.getElementById('analysisPrompt').value.trim();
-            if (!prompt) {
-                showStatus('Please enter an analysis prompt.', 'error');
-                return;
-            }
-            const numFrames = parseInt(document.getElementById('numFrames').value) || 10;
-
-            const captionProgress = document.getElementById('captionProgress');
-            const captionResult = document.getElementById('captionResult');
-            const captionResultText = document.getElementById('captionResultText');
-            const captionStatusText = document.getElementById('captionStatusText');
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const framesGallery = document.getElementById('framesGallery');
-            const framesGrid = document.getElementById('framesGrid');
-
-            captionProgress.classList.add('active');
-            captionResult.style.display = 'none';
-            framesGallery.style.display = 'none';
-            analyzeBtn.disabled = true;
-            captionStatusText.textContent = 'Extracting frames...';
-
-            try {
-                // Step 1: Extract frames using user-specified count
-                const extractResponse = await fetch('/extract_frames', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: captionerFilename, num_frames: numFrames })
-                });
-                const extractResult = await extractResponse.json();
-                if (extractResult.error) {
-                    throw new Error(extractResult.error);
-                }
-
-                captionStatusText.textContent = 'Sending to AI for analysis...';
-
-                // Display extracted frames in gallery
-                framesGrid.innerHTML = '';
-                if (extractResult.frames && extractResult.frames.length > 0) {
-                    extractResult.frames.forEach((frame, index) => {
-                        const frameItem = document.createElement('div');
-                        frameItem.className = 'frame-item';
-                        frameItem.innerHTML = `
-                            <img src="${frame}" alt="Frame ${index + 1}">
-                            <div class="frame-label">Frame ${index + 1}</div>
-                        `;
-                        framesGrid.appendChild(frameItem);
-                    });
-                    framesGallery.style.display = 'block';
-                }
-
-                // Step 2: Send to AI for analysis directly from browser
-                const model = document.getElementById('modelSelect').value || 'default';
-                const sysPromptResponse = await fetch('/api/system_prompt');
-                const sysPromptData = await sysPromptResponse.json();
-                const systemPrompt = sysPromptData.system_prompt;
-                const messages = [];
-                if (systemPrompt) {
-                    messages.push({ role: "system", content: systemPrompt });
-                }
-                // Build the message content with text and images
-                const content = [
-                    { type: "text", text: prompt }
-                ];
-                for (const frame of extractResult.frames) {
-                    content.push({ type: "image_url", image_url: { url: frame } });
-                }
-                messages.push({ role: "user", content: content });
-
-                const apiPayload = {
-                    model: model,
-                    messages,
-                    max_tokens: 16384,
-                    temperature: 0.1
-                };
-
-                // Determine API endpoint
-                let apiEndpoint = openaiUrl;
-                if (!apiEndpoint.includes('/chat/completions')) {
-                    apiEndpoint = apiEndpoint.replace(/\/+$/, '') + '/chat/completions';
-                }
-
-                const analyzeResponse = await fetch(apiEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(apiPayload)
-                });
-
-                if (!analyzeResponse.ok) {
-                    const errorText = await analyzeResponse.text();
-                    throw new Error(`API request failed with status ${analyzeResponse.status}: ${errorText}`);
-                }
-
-                const analyzeResult = await analyzeResponse.json();
-                const responseText = analyzeResult?.choices?.[0]?.message?.content || 'No response from API';
-
-                captionStatusText.textContent = 'Complete!';
-                captionResultText.textContent = responseText;
-                lastCaption = responseText;
-                const baseName = captionerFilename ? captionerFilename.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '') : 'caption';
-                lastVideoName = baseName + '.txt';
-                captionResult.style.display = 'block';
-                document.getElementById('downloadCaptionBtn').style.display = 'inline-block';
-                document.getElementById('downloadCaptionBtn2').style.display = 'inline-block';
-                showStatus('Video analyzed successfully!', 'success');
-            } catch (err) {
-                showStatus('Analysis failed: ' + err.message, 'error');
-            } finally {
-                captionProgress.classList.remove('active');
-                analyzeBtn.disabled = false;
-            }
-        });
+        setupDragDrop(uploadArea, fileInput, handleUpload);
 
         function showStatus(msg, type) {
             statusMessage.textContent = msg;
@@ -844,29 +129,8 @@
             setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
         }
 
-        // Download caption buttons
-        document.getElementById('downloadCaptionBtn').addEventListener('click', () => {
-            downloadCaption();
-        });
-        document.getElementById('downloadCaptionBtn2').addEventListener('click', () => {
-            downloadCaption();
-        });
-
-        function downloadCaption() {
-            if (!lastCaption) return;
-            const blob = new Blob([lastCaption], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = lastVideoName || 'caption.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Load video thumbnails (cropper tab)
-        document.querySelectorAll('#cropper-tab .video-card video').forEach((video) => {
+        // Load video thumbnails
+        document.querySelectorAll('.video-card video').forEach((video) => {
             video.addEventListener('loadedmetadata', () => {
                 video.currentTime = 1;
             });
