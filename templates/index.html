@@ -170,6 +170,70 @@
             font-size: 0.85rem;
             margin-top: 8px;
         }
+
+        /* Num frames control */
+        .num-frames-control {
+            margin-bottom: 15px;
+        }
+
+        .num-frames-control input[type="number"] {
+            width: 100px;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .num-frames-control input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Extracted frames gallery */
+        .frames-gallery {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f0f1a;
+            border-radius: 8px;
+        }
+
+        .frames-gallery h4 {
+            color: #888;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .frames-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .frames-grid .frame-item {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #2a2a3e;
+        }
+
+        .frames-grid .frame-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .frames-grid .frame-item .frame-label {
+            padding: 8px;
+            text-align: center;
+            color: #888;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -239,10 +303,22 @@
         <!-- Tab 2: Video Captioner -->
         <div class="tab-content" id="captioner-tab">
             <div class="captioner-controls">
+                <!-- Video selector dropdown -->
+                <div id="videoSelectorContainer" style="margin-bottom: 20px;">
+                    <label>Select Existing Video</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="videoSelectDropdown" style="flex: 1; background: #2a2a3e; border: 1px solid #444; color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem;">
+                            <option value="">-- Upload a new video below --</option>
+                        </select>
+                        <button class="btn btn-secondary" id="refreshVideosBtn" style="white-space: nowrap;">🔄 Refresh</button>
+                    </div>
+                </div>
+
                 <!-- Video preview -->
                 <div id="captionerVideoPreview" class="captioner-video-preview" style="display:none;">
                     <video id="captionerVideo" controls muted></video>
                     <p class="video-name" id="captionerVideoName"></p>
+                    <button class="btn btn-secondary" id="changeVideoBtn" style="margin-top: 10px;">🔄 Change Video</button>
                 </div>
 
                 <div class="caption-upload-section">
@@ -278,6 +354,11 @@
                 <label>Analysis Prompt</label>
                 <textarea id="analysisPrompt" placeholder="Describe what you want the AI to analyze or generate from the video frames...">Analyze this video and provide a detailed summary of the key events, objects, and actions shown.</textarea>
 
+                <div class="num-frames-control">
+                    <label>Number of Frames to Extract</label>
+                    <input type="number" id="numFrames" value="10" min="1" max="100" step="1">
+                </div>
+
                 <div class="captioner-actions">
                     <button class="btn btn-primary" id="analyzeBtn">🤖 Analyze Video</button>
                     <button class="btn btn-secondary" id="downloadCaptionBtn" style="display:none;">⬇️ Download Caption</button>
@@ -299,6 +380,12 @@
                     <button class="btn btn-secondary" id="downloadCaptionBtn2" style="display:none;">⬇️ Download Caption as .txt</button>
                 </div>
             </div>
+
+            <!-- Extracted Frames Gallery -->
+            <div class="frames-gallery" id="framesGallery" style="display:none;">
+                <h4>Extracted Frames</h4>
+                <div class="frames-grid" id="framesGrid"></div>
+            </div>
         </div>
 
         <!-- Status Messages -->
@@ -310,16 +397,73 @@
         let captionerVideoUrl = null;
 
         // ========================
+        // LocalStorage Persistence
+        // ========================
+        const STORAGE_KEYS = {
+            OPENAI_URL: 'captioner_openai_url',
+            MODEL: 'captioner_model',
+            PROMPT: 'captioner_prompt',
+            NUM_FRAMES: 'captioner_num_frames'
+        };
+
+        function loadFromStorage() {
+            const openaiUrl = localStorage.getItem(STORAGE_KEYS.OPENAI_URL);
+            if (openaiUrl) {
+                document.getElementById('openaiUrl').value = openaiUrl;
+            }
+            const model = localStorage.getItem(STORAGE_KEYS.MODEL);
+            if (model) {
+                document.getElementById('modelSelect').value = model;
+            }
+            const prompt = localStorage.getItem(STORAGE_KEYS.PROMPT);
+            if (prompt) {
+                document.getElementById('analysisPrompt').value = prompt;
+            }
+            const numFrames = localStorage.getItem(STORAGE_KEYS.NUM_FRAMES);
+            if (numFrames) {
+                document.getElementById('numFrames').value = numFrames;
+            }
+        }
+
+        function saveToStorage(key, value) {
+            localStorage.setItem(key, value);
+        }
+
+        // Load saved values on page load
+        loadFromStorage();
+
+        // Save values when they change
+        document.getElementById('openaiUrl').addEventListener('input', function() {
+            saveToStorage(STORAGE_KEYS.OPENAI_URL, this.value);
+        });
+
+        document.getElementById('modelSelect').addEventListener('change', function() {
+            saveToStorage(STORAGE_KEYS.MODEL, this.value);
+        });
+
+        document.getElementById('analysisPrompt').addEventListener('input', function() {
+            saveToStorage(STORAGE_KEYS.PROMPT, this.value);
+        });
+
+        document.getElementById('numFrames').addEventListener('input', function() {
+            saveToStorage(STORAGE_KEYS.NUM_FRAMES, this.value);
+        });
+
+        // ========================
         // Load config from backend
         // ========================
         async function loadConfig() {
             try {
                 const response = await fetch('/api/config');
                 const config = await response.json();
-                document.getElementById('openaiUrl').value = config.openai_url || 'http://127.0.0.1:11434/v1';
+                const openaiUrlInput = document.getElementById('openaiUrl');
+                // Only use backend config if localStorage is empty
+                if (!localStorage.getItem(STORAGE_KEYS.OPENAI_URL) && (config.openai_url || 'http://127.0.0.1:11434/v1')) {
+                    openaiUrlInput.value = config.openai_url || 'http://127.0.0.1:11434/v1';
+                    saveToStorage(STORAGE_KEYS.OPENAI_URL, openaiUrlInput.value);
+                }
             } catch (err) {
                 console.error('Failed to load config:', err);
-                document.getElementById('openaiUrl').value = 'http://127.0.0.1:11434/v1';
             }
         }
         loadConfig();
@@ -417,17 +561,67 @@
             }
         });
 
+        // Use the /api/videos endpoint to get the list
+        let allVideos = [];
+        async function fetchVideoList() {
+            try {
+                const response = await fetch('/api/videos');
+                const data = await response.json();
+                allVideos = data.videos || [];
+                updateVideoDropdown();
+            } catch (err) {
+                console.error('Failed to fetch video list:', err);
+            }
+        }
+
+        function updateVideoDropdown() {
+            const select = document.getElementById('videoSelectDropdown');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- Upload a new video below --</option>';
+            allVideos.forEach(video => {
+                const option = document.createElement('option');
+                option.value = video;
+                option.textContent = video;
+                select.appendChild(option);
+            });
+            // Restore selection if still valid
+            if (currentValue && allVideos.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // Refresh videos button
+        document.getElementById('refreshVideosBtn')?.addEventListener('click', () => {
+            location.reload();
+        });
+
+        // Video select dropdown change handler
+        document.getElementById('videoSelectDropdown')?.addEventListener('change', function() {
+            if (this.value) {
+                loadVideoToCaptioner(this.value);
+            }
+        });
+
+        // Change video button - resets to upload state
+        document.getElementById('changeVideoBtn')?.addEventListener('click', () => {
+            captionerFilename = null;
+            document.getElementById('captionerVideoPreview').style.display = 'none';
+            document.getElementById('captionerUploadArea').style.display = 'block';
+            document.getElementById('videoSelectDropdown').value = '';
+            showStatus('You can now upload a new video or select one from the list.', 'success');
+        });
+
         // ============================
         // Load video into captioner
         // ============================
         async function loadVideoToCaptioner(filename) {
-            // Switch to captioner tab
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector('[data-tab="captioner"]').classList.add('active');
-            document.getElementById('captioner-tab').classList.add('active');
-
             captionerFilename = filename;
+
+            // Update dropdown selection
+            const dropdown = document.getElementById('videoSelectDropdown');
+            if (dropdown) {
+                dropdown.value = filename;
+            }
 
             // Show video preview
             const preview = document.getElementById('captionerVideoPreview');
@@ -450,6 +644,11 @@
                 const filename = e.target.getAttribute('href')?.split('file=')[1];
                 if (filename) loadVideoToCaptioner(decodeURIComponent(filename));
             }
+        });
+
+        // Refresh video list when switching to captioner tab
+        document.querySelector('[data-tab="captioner"]')?.addEventListener('click', () => {
+            setTimeout(fetchVideoList, 100);
         });
 
         // ============================
@@ -531,24 +730,28 @@
                 showStatus('Please enter an analysis prompt.', 'error');
                 return;
             }
+            const numFrames = parseInt(document.getElementById('numFrames').value) || 10;
 
             const captionProgress = document.getElementById('captionProgress');
             const captionResult = document.getElementById('captionResult');
             const captionResultText = document.getElementById('captionResultText');
             const captionStatusText = document.getElementById('captionStatusText');
             const analyzeBtn = document.getElementById('analyzeBtn');
+            const framesGallery = document.getElementById('framesGallery');
+            const framesGrid = document.getElementById('framesGrid');
 
             captionProgress.classList.add('active');
             captionResult.style.display = 'none';
+            framesGallery.style.display = 'none';
             analyzeBtn.disabled = true;
             captionStatusText.textContent = 'Extracting frames...';
 
             try {
-                // Step 1: Extract 10 frames
+                // Step 1: Extract frames using user-specified count
                 const extractResponse = await fetch('/extract_frames', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: captionerFilename, num_frames: 10 })
+                    body: JSON.stringify({ filename: captionerFilename, num_frames: numFrames })
                 });
                 const extractResult = await extractResponse.json();
                 if (extractResult.error) {
@@ -557,9 +760,30 @@
 
                 captionStatusText.textContent = 'Sending to AI for analysis...';
 
+                // Display extracted frames in gallery
+                framesGrid.innerHTML = '';
+                if (extractResult.frames && extractResult.frames.length > 0) {
+                    extractResult.frames.forEach((frame, index) => {
+                        const frameItem = document.createElement('div');
+                        frameItem.className = 'frame-item';
+                        frameItem.innerHTML = `
+                            <img src="${frame}" alt="Frame ${index + 1}">
+                            <div class="frame-label">Frame ${index + 1}</div>
+                        `;
+                        framesGrid.appendChild(frameItem);
+                    });
+                    framesGallery.style.display = 'block';
+                }
+
                 // Step 2: Send to AI for analysis directly from browser
                 const model = document.getElementById('modelSelect').value || 'default';
-                
+                const sysPromptResponse = await fetch('/api/system_prompt');
+                const sysPromptData = await sysPromptResponse.json();
+                const systemPrompt = sysPromptData.system_prompt;
+                const messages = [];
+                if (systemPrompt) {
+                    messages.push({ role: "system", content: systemPrompt });
+                }
                 // Build the message content with text and images
                 const content = [
                     { type: "text", text: prompt }
@@ -567,11 +791,12 @@
                 for (const frame of extractResult.frames) {
                     content.push({ type: "image_url", image_url: { url: frame } });
                 }
+                messages.push({ role: "user", content: content });
 
                 const apiPayload = {
                     model: model,
-                    messages: [{ role: "user", content: content }],
-                    max_tokens: 4096,
+                    messages,
+                    max_tokens: 16384,
                     temperature: 0.1
                 };
 

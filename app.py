@@ -53,6 +53,12 @@ def api_config():
         'openai_url': Config.OPENAI_URL
     })
 
+# --- API video list endpoint ---
+@app.route('/api/videos')
+def api_videos():
+    videos = get_video_files()
+    return jsonify({'videos': videos})
+
 # --- Crop page (GET: render form) ---
 @app.route('/crop', methods=['GET'])
 def crop_page():
@@ -380,97 +386,10 @@ def extract_frames():
         return jsonify({'error': 'Frame extraction timed out'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-
-# --- Analyze video with AI ---
-@app.route('/analyze_video', methods=['POST'])
-def analyze_video():
-    data = request.get_json()
-    api_url = data.get('api_url', '').rstrip('/')
-    model = data.get('model', 'default')
-    prompt = data.get('prompt', '')
-    frames = data.get('frames', [])
-
-    if not api_url or not prompt or not frames:
-        return jsonify({'error': 'Missing required parameters'}), 400
-
-    # Load the system prompt
-    system_prompt = Config.get_system_prompt()
-
-    # Construct the OpenAI-compatible API request
-    messages = []
-
-    # Add system message if system prompt is configured
-    if system_prompt:
-        messages.append({
-            "role": "system",
-            "content": system_prompt
-        })
-
-    # Build user content with images and text prompt
-    content = []
-
-    # Add image parts from frames
-    for frame_b64 in frames:
-        content.append({
-            "type": "image_url",
-            "image_url": {
-                "url": frame_b64
-            }
-        })
-
-    # Add text part with prompt
-    content.append({
-        "type": "text",
-        "text": prompt
-    })
-
-    messages.append({
-        "role": "user",
-        "content": content
-    })
-
-    api_request = {
-        "model": model,
-        "messages": messages,
-        "max_tokens": 4096,
-        "temperature": 0.1
-    }
-
-    try:
-        # Determine the actual API endpoint
-        # The URL is like http://localhost:8000/v1, we need to add /chat/completions
-        if '/chat' not in api_url:
-            api_endpoint = api_url + '/chat/completions'
-        else:
-            api_endpoint = api_url
-
-        response = requests.post(
-            api_endpoint,
-            json=api_request,
-            timeout=300
-        )
-
-        if response.status_code != 200:
-            return jsonify({
-                'error': f'API request failed with status {response.status_code}: {response.text}'
-            }), response.status_code
-
-        result = response.json()
-        api_response = result.get('choices', [{}])[0].get('message', {}).get('content', '')
-
-        return jsonify({
-            'success': True,
-            'response': api_response
-        })
-
-    except requests.exceptions.Timeout:
-        return jsonify({'error': 'API request timed out'}), 500
-    except requests.exceptions.ConnectionError:
-        return jsonify({'error': f'Connection failed. Is {api_url} running?'}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+    
+@app.route('/api/system_prompt')
+def api_system_prompt():
+    return jsonify({'system_prompt': Config.get_system_prompt()})
 
 def purge_uploaded_videos():
     """Remove all uploaded videos from the upload directory on launch."""
