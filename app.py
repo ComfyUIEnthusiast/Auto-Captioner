@@ -83,12 +83,11 @@ def upload_file():
         return jsonify({'error': f'File type not allowed. Allowed: {", ".join(ALLOWED_EXTENSIONS)}'}), 400
     
     filename = secure_filename(file.filename)
-    # Unique filename to avoid collisions
-    unique_name = f"{uuid.uuid4().hex}_{filename}"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+    # Keep the original filename (no UUID prefix or suffix)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
     
-    return jsonify({'filename': unique_name, 'message': 'File uploaded successfully'})
+    return jsonify({'filename': filename, 'message': 'File uploaded successfully'})
 
 
 # --- Get video info ---
