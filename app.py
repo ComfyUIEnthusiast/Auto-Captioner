@@ -73,6 +73,45 @@ def caption_page():
     return render_template('caption.html', filename=filename, videos=videos)
 
 
+# --- Bulk Caption page ---
+@app.route('/bulk-caption')
+def bulk_caption_page():
+    """Render the bulk captioning page."""
+    return render_template('bulk-caption.html')
+
+
+# --- Bulk caption download endpoint ---
+@app.route('/api/bulk-caption-download', methods=['POST'])
+def bulk_caption_download():
+    """Generate and download a ZIP file containing all captions."""
+    import io
+    import zipfile
+    
+    data = request.get_json()
+    captions = data.get('captions', [])
+    
+    if not captions:
+        return jsonify({'error': 'No captions to download'}), 400
+    
+    # Create a ZIP file in memory
+    memory_file = io.BytesIO()
+    
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for caption in captions:
+            filename = caption.get('filename', 'caption.txt')
+            content = caption.get('content', '')
+            zf.writestr(filename, content)
+    
+    memory_file.seek(0)
+    
+    return send_file(
+        memory_file,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name='captions.zip'
+    )
+
+
 # --- Crop page (GET: render form) ---
 @app.route('/crop', methods=['GET'])
 def crop_page():

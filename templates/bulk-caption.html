@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Video Captioner</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .bulk-captioner-controls {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .bulk-captioner-controls label {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .bulk-captioner-controls input[type="text"],
+        .bulk-captioner-controls textarea,
+        .bulk-captioner-controls select {
+            width: 100%;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .bulk-captioner-controls input[type="text"]:focus,
+        .bulk-captioner-controls textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .bulk-captioner-controls textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .bulk-upload-section {
+            margin-bottom: 20px;
+        }
+
+        .bulk-upload-area {
+            border: 2px dashed #444;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: #0f0f1a;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .bulk-upload-area.drag-over {
+            border-color: #667eea;
+            background: #1a1a2e;
+        }
+
+        .bulk-upload-area:hover {
+            border-color: #667eea;
+        }
+
+        .bulk-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .bulk-upload-area h3 {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .bulk-upload-area .browse-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .bulk-upload-area .browse-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .bulk-formats {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+
+        .bulk-file-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .bulk-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: #2a2a3e;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .bulk-file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .bulk-file-icon {
+            font-size: 1.5rem;
+        }
+
+        .bulk-file-name {
+            color: #fff;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+
+        .bulk-file-size {
+            color: #888;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .bulk-file-status {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .bulk-file-status.pending {
+            background: #3a3a4e;
+            color: #888;
+        }
+
+        .bulk-file-status.processing {
+            background: #2a4a6e;
+            color: #667eea;
+        }
+
+        .bulk-file-status.completed {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .bulk-file-status.error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .bulk-file-remove {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            margin-left: 10px;
+        }
+
+        .bulk-file-remove:hover {
+            color: #c0392b;
+        }
+
+        .bulk-progress {
+            display: none;
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .bulk-progress.active {
+            display: block;
+        }
+
+        .bulk-progress .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .bulk-progress h3 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .bulk-progress p {
+            color: #888;
+        }
+
+        .bulk-progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f0f1a;
+            border-radius: 8px;
+        }
+
+        .bulk-progress-stat {
+            text-align: center;
+        }
+
+        .bulk-progress-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .bulk-progress-stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .bulk-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #2a2a3e;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .bulk-progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .bulk-result {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .bulk-result h3 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .bulk-result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .bulk-result-stat {
+            background: #2a2a3e;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .bulk-result-stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .bulk-result-stat-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .bulk-result-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .bulk-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: #0f0f1a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .bulk-result-item-name {
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .bulk-result-item-status {
+            font-size: 0.85rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .bulk-result-item-status.success {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .bulk-result-item-status.error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .num-frames-control {
+            margin-bottom: 15px;
+        }
+
+        .num-frames-control input[type="number"] {
+            width: 100px;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .num-frames-control input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #2a2a3e;
+            color: #ccc;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .status-message {
+            display: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .status-message.success {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+
+        .status-message.error {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #888;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Video Selection</a>
+
+        <h1>📦 Bulk Video Captioner</h1>
+
+        <div class="bulk-captioner-controls">
+            <!-- Upload Section -->
+            <div class="bulk-upload-section">
+                <label>Upload Videos</label>
+                <div class="bulk-upload-area" id="bulkUploadArea">
+                    <div class="bulk-upload-icon">📁</div>
+                    <h3>Drop videos here</h3>
+                    <p>or</p>
+                    <label class="browse-btn">
+                        Browse Files
+                        <input type="file" id="bulkFileInput" accept="video/*" multiple hidden>
+                    </label>
+                    <p class="bulk-formats">Supported: MP4, AVI, MOV, MKV, WebM, FLV, WMV</p>
+                </div>
+            </div>
+
+            <!-- File List -->
+            <div id="bulkFileListSection" style="display: none;">
+                <label>Files to Process (<span id="fileCount">0</span>)</label>
+                <div class="bulk-file-list" id="bulkFileList"></div>
+            </div>
+
+            <!-- Configuration -->
+            <div id="bulkConfigSection" style="display: none;">
+                <label>OpenAI API URL</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="openaiUrl" value="http://127.0.0.1:11434/v1" placeholder="http://127.0.0.1:11434/v1">
+                    <button class="btn btn-secondary" id="fetchModelsBtn">🔄 Fetch Models</button>
+                </div>
+
+                <label>Model</label>
+                <select id="modelSelect">
+                    <option value="">-- No models loaded --</option>
+                </select>
+
+                <label>Analysis Prompt</label>
+                <textarea id="analysisPrompt" placeholder="Describe what you want the AI to analyze...">Analyze this video and provide a detailed summary of the key events, objects, and actions shown.</textarea>
+
+                <div class="num-frames-control">
+                    <label>Number of Frames per Video</label>
+                    <input type="number" id="numFrames" value="10" min="1" max="100" step="1">
+                </div>
+
+                <div class="bulk-actions">
+                    <button class="btn btn-primary" id="startProcessingBtn">🚀 Start Processing</button>
+                    <button class="btn btn-secondary" id="clearAllBtn">🗑️ Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Progress -->
+        <div class="bulk-progress" id="bulkProgress">
+            <div class="spinner"></div>
+            <h3>Processing Videos...</h3>
+            <p id="bulkStatusText">Initializing...</p>
+            <div class="bulk-progress-stats">
+                <div class="bulk-progress-stat">
+                    <div class="bulk-progress-stat-value" id="processedCount">0</div>
+                    <div class="bulk-progress-stat-label">Processed</div>
+                </div>
+                <div class="bulk-progress-stat">
+                    <div class="bulk-progress-stat-value" id="successCount">0</div>
+                    <div class="bulk-progress-stat-label">Success</div>
+                </div>
+                <div class="bulk-progress-stat">
+                    <div class="bulk-progress-stat-value" id="errorCount">0</div>
+                    <div class="bulk-progress-stat-label">Errors</div>
+                </div>
+            </div>
+            <div class="bulk-progress-bar">
+                <div class="bulk-progress-fill" id="bulkProgressFill"></div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="bulk-result" id="bulkResult">
+            <h3>Processing Complete!</h3>
+            <div class="bulk-result-stats">
+                <div class="bulk-result-stat">
+                    <div class="bulk-result-stat-value" id="totalProcessed">0</div>
+                    <div class="bulk-result-stat-label">Total Processed</div>
+                </div>
+                <div class="bulk-result-stat">
+                    <div class="bulk-result-stat-value" id="totalSuccess">0</div>
+                    <div class="bulk-result-stat-label">Successful</div>
+                </div>
+                <div class="bulk-result-stat">
+                    <div class="bulk-result-stat-value" id="totalErrors">0</div>
+                    <div class="bulk-result-stat-label">Errors</div>
+                </div>
+            </div>
+            <div class="bulk-result-list" id="bulkResultList"></div>
+            <div class="bulk-actions">
+                <button class="btn btn-success" id="downloadZipBtn">⬇️ Download All as ZIP</button>
+                <button class="btn btn-secondary" id="startOverBtn">🔄 Start Over</button>
+            </div>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script>
+        // ========================
+        // State Management
+        // ========================
+        let bulkFiles = [];
+        let bulkProcessing = false;
+        let processingResults = [];
+        let lastCaptionData = [];
+
+        // ========================
+        // LocalStorage Persistence
+        // ========================
+        const STORAGE_KEYS = {
+            OPENAI_URL: 'bulk_openai_url',
+            MODEL: 'bulk_model',
+            PROMPT: 'bulk_prompt',
+            NUM_FRAMES: 'bulk_num_frames'
+        };
+
+        function loadFromStorage() {
+            const openaiUrl = localStorage.getItem(STORAGE_KEYS.OPENAI_URL);
+            if (openaiUrl) {
+                document.getElementById('openaiUrl').value = openaiUrl;
+            }
+            const model = localStorage.getItem(STORAGE_KEYS.MODEL);
+            if (model) {
+                document.getElementById('modelSelect').value = model;
+            }
+            const prompt = localStorage.getItem(STORAGE_KEYS.PROMPT);
+            if (prompt) {
+                document.getElementById('analysisPrompt').value = prompt;
+            }
+            const numFrames = localStorage.getItem(STORAGE_KEYS.NUM_FRAMES);
+            if (numFrames) {
+                document.getElementById('numFrames').value = numFrames;
+            }
+        }
+
+        function saveToStorage(key, value) {
+            localStorage.setItem(key, value);
+        }
+
+        document.getElementById('openaiUrl').addEventListener('input', function() {
+            saveToStorage(STORAGE_KEYS.OPENAI_URL, this.value);
+        });
+
+        document.getElementById('modelSelect').addEventListener('change', function() {
+            saveToStorage(STORAGE_KEYS.MODEL, this.value);
+        });
+
+        document.getElementById('analysisPrompt').addEventListener('input', function() {
+            saveToStorage(STORAGE_KEYS.PROMPT, this.value);
+        });
+
+        document.getElementById('numFrames').addEventListener('input', function() {
+            saveToStorage(STORAGE_KEYS.NUM_FRAMES, this.value);
+        });
+
+        // ========================
+        // Load config from backend
+        // ========================
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                const openaiUrlInput = document.getElementById('openaiUrl');
+                if (!localStorage.getItem(STORAGE_KEYS.OPENAI_URL) && (config.openai_url || 'http://127.0.0.1:11434/v1')) {
+                    openaiUrlInput.value = config.openai_url || 'http://127.0.0.1:11434/v1';
+                    saveToStorage(STORAGE_KEYS.OPENAI_URL, openaiUrlInput.value);
+                }
+            } catch (err) {
+                console.error('Failed to load config:', err);
+            }
+        }
+
+        // ========================
+        // Load models from backend
+        // ========================
+        async function loadModels() {
+            const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
+            const modelSelect = document.getElementById('modelSelect');
+            try {
+                const response = await fetch(`${openaiUrl}/models`, { signal: AbortSignal.timeout(10000) });
+                const data = await response.json();
+                modelSelect.innerHTML = '';
+                if (data.data && data.data.length > 0) {
+                    data.data.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.id;
+                        modelSelect.appendChild(option);
+                    });
+                    modelSelect.value = modelSelect.options[0].value;
+                    showStatus(`Loaded ${data.data.length} models`, 'success');
+                } else {
+                    modelSelect.innerHTML = '<option value="">-- No models found --</option>';
+                    showStatus('No models found at this URL', 'error');
+                }
+            } catch (err) {
+                modelSelect.innerHTML = '<option value="">-- Failed to load models --</option>';
+                showStatus('Failed to connect. Check URL and port.', 'error');
+            }
+        }
+
+        // ========================
+        // UI Helpers
+        // ========================
+        function showStatus(msg, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = msg;
+            statusMessage.className = 'status-message ' + type;
+            statusMessage.style.display = 'block';
+            setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                mp4: '🎬',
+                avi: '🎬',
+                mov: '🎬',
+                mkv: '🎬',
+                webm: '🎬',
+                flv: '🎬',
+                wmv: '🎬'
+            };
+            return iconMap[ext] || '📹';
+        }
+
+        // ========================
+        // File Upload Handling
+        // ========================
+        const bulkUploadArea = document.getElementById('bulkUploadArea');
+        const bulkFileInput = document.getElementById('bulkFileInput');
+
+        function setupDragDrop(area, fileInput, onFiles) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                area.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            ['dragenter', 'dragover'].forEach(evt => {
+                area.addEventListener(evt, () => area.classList.add('drag-over'));
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                area.addEventListener(evt, () => area.classList.remove('drag-over'));
+            });
+            area.addEventListener('drop', (e) => {
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('video/'));
+                if (files.length > 0) onFiles(files);
+            });
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) onFiles(Array.from(fileInput.files));
+            });
+        }
+
+        function addFiles(files) {
+            const validExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'wmv'];
+            
+            files.forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (validExtensions.includes(ext)) {
+                    // Check for duplicates
+                    if (!bulkFiles.some(f => f.name === file.name)) {
+                        bulkFiles.push({
+                            file: file,
+                            status: 'pending',
+                            result: null,
+                            error: null
+                        });
+                    }
+                }
+            });
+
+            updateFileList();
+            bulkFileInput.value = '';
+        }
+
+        function updateFileList() {
+            const fileCount = document.getElementById('fileCount');
+            const fileListSection = document.getElementById('bulkFileListSection');
+            const bulkFileList = document.getElementById('bulkFileList');
+            const configSection = document.getElementById('bulkConfigSection');
+
+            fileCount.textContent = bulkFiles.length;
+
+            if (bulkFiles.length === 0) {
+                fileListSection.style.display = 'none';
+                configSection.style.display = 'none';
+                return;
+            }
+
+            fileListSection.style.display = 'block';
+            configSection.style.display = 'block';
+
+            bulkFileList.innerHTML = '';
+            bulkFiles.forEach((item, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'bulk-file-item';
+                fileItem.innerHTML = `
+                    <div class="bulk-file-info">
+                        <span class="bulk-file-icon">${getFileIcon(item.file.name)}</span>
+                        <div>
+                            <div class="bulk-file-name">${item.file.name}</div>
+                            <span class="bulk-file-size">${formatFileSize(item.file.size)}</span>
+                        </div>
+                    </div>
+                    <span class="bulk-file-status ${item.status}">${item.status}</span>
+                    ${item.status === 'pending' ? `<button class="bulk-file-remove" onclick="removeFile(${index})">×</button>` : ''}
+                `;
+                bulkFileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            if (bulkProcessing) return;
+            bulkFiles.splice(index, 1);
+            updateFileList();
+        }
+
+        function clearAllFiles() {
+            if (bulkProcessing) return;
+            bulkFiles = [];
+            processingResults = [];
+            lastCaptionData = [];
+            updateFileList();
+            document.getElementById('bulkProgress').classList.remove('active');
+            document.getElementById('bulkResult').style.display = 'none';
+        }
+
+        // ========================
+        // Processing Logic
+        // ========================
+        async function processVideo(fileItem, index) {
+            const openaiUrl = document.getElementById('openaiUrl').value.replace(/\/$/, '');
+            const prompt = document.getElementById('analysisPrompt').value.trim();
+            const numFrames = parseInt(document.getElementById('numFrames').value) || 10;
+            const model = document.getElementById('modelSelect').value;
+
+            if (!model) {
+                throw new Error('No model selected');
+            }
+
+            // Step 1: Upload the video
+            const formData = new FormData();
+            formData.append('video', fileItem.file);
+            
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!uploadResponse.ok) {
+                throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+            }
+            
+            const uploadResult = await uploadResponse.json();
+            const filename = uploadResult.filename;
+
+            // Step 2: Extract frames
+            const extractResponse = await fetch('/extract_frames', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filename, num_frames: numFrames })
+            });
+            
+            if (!extractResponse.ok) {
+                throw new Error(`Frame extraction failed: ${extractResponse.statusText}`);
+            }
+            
+            const extractResult = await extractResponse.json();
+            if (extractResult.error) {
+                throw new Error(extractResult.error);
+            }
+
+            // Step 3: Send to AI
+            const sysPromptResponse = await fetch('/api/system_prompt');
+            const sysPromptData = await sysPromptResponse.json();
+            const systemPrompt = sysPromptData.system_prompt;
+            
+            const messages = [];
+            if (systemPrompt) {
+                messages.push({ role: "system", content: systemPrompt });
+            }
+            
+            const content = [{ type: "text", text: prompt }];
+            for (const frame of extractResult.frames) {
+                content.push({ type: "image_url", image_url: { url: frame } });
+            }
+            messages.push({ role: "user", content: content });
+
+            const apiPayload = {
+                model: model,
+                messages,
+                max_tokens: 16384,
+                temperature: 0.1
+            };
+
+            let apiEndpoint = openaiUrl;
+            if (!apiEndpoint.includes('/chat/completions')) {
+                apiEndpoint = apiEndpoint.replace(/\/+$/, '') + '/chat/completions';
+            }
+
+            const analyzeResponse = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(apiPayload)
+            });
+
+            if (!analyzeResponse.ok) {
+                const errorText = await analyzeResponse.text();
+                throw new Error(`API request failed: ${errorText}`);
+            }
+
+            const analyzeResult = await analyzeResponse.json();
+            const captionText = analyzeResult?.choices?.[0]?.message?.content || 'No response from AI';
+
+            return {
+                filename: filename,
+                caption: captionText,
+                originalName: fileItem.file.name
+            };
+        }
+
+        async function startProcessing() {
+            if (bulkFiles.length === 0) {
+                showStatus('Please add videos first', 'error');
+                return;
+            }
+
+            const openaiUrl = document.getElementById('openaiUrl').value;
+            if (!openaiUrl) {
+                showStatus('Please enter OpenAI API URL', 'error');
+                return;
+            }
+
+            const model = document.getElementById('modelSelect').value;
+            if (!model) {
+                showStatus('Please select a model', 'error');
+                return;
+            }
+
+            const prompt = document.getElementById('analysisPrompt').value.trim();
+            if (!prompt) {
+                showStatus('Please enter an analysis prompt', 'error');
+                return;
+            }
+
+            bulkProcessing = true;
+            processingResults = [];
+            lastCaptionData = [];
+
+            // Update UI
+            document.getElementById('bulkProgress').classList.add('active');
+            document.getElementById('bulkResult').style.display = 'none';
+            document.getElementById('startProcessingBtn').disabled = true;
+            document.getElementById('clearAllBtn').disabled = true;
+
+            let processed = 0;
+            let success = 0;
+            let errors = 0;
+
+            for (let i = 0; i < bulkFiles.length; i++) {
+                const fileItem = bulkFiles[i];
+                fileItem.status = 'processing';
+                updateFileList();
+
+                const statusText = document.getElementById('bulkStatusText');
+                statusText.textContent = `Processing ${i + 1} of ${bulkFiles.length}: ${fileItem.file.name}`;
+
+                try {
+                    const result = await processVideo(fileItem, i);
+                    fileItem.status = 'completed';
+                    fileItem.result = result;
+                    processingResults.push({
+                        originalName: fileItem.file.name,
+                        caption: result.caption,
+                        success: true
+                    });
+                    lastCaptionData.push({
+                        filename: fileItem.file.name.replace(/\.[^.]+$/, '') + '.txt',
+                        content: result.caption
+                    });
+                    success++;
+                } catch (err) {
+                    fileItem.status = 'error';
+                    fileItem.error = err.message;
+                    processingResults.push({
+                        originalName: fileItem.file.name,
+                        error: err.message,
+                        success: false
+                    });
+                    errors++;
+                }
+
+                processed++;
+                updateFileList();
+                updateProgress(processed, success, errors);
+            }
+
+            // Processing complete
+            showProcessingComplete(success, errors);
+        }
+
+        function updateProgress(processed, success, errors) {
+            const total = bulkFiles.length;
+            const percentage = (processed / total) * 100;
+
+            document.getElementById('processedCount').textContent = processed;
+            document.getElementById('successCount').textContent = success;
+            document.getElementById('errorCount').textContent = errors;
+            document.getElementById('bulkProgressFill').style.width = percentage + '%';
+        }
+
+        function showProcessingComplete(success, errors) {
+            bulkProcessing = false;
+
+            document.getElementById('totalProcessed').textContent = success + errors;
+            document.getElementById('totalSuccess').textContent = success;
+            document.getElementById('totalErrors').textContent = errors;
+
+            // Update file list to show final status
+            updateFileList();
+
+            // Build result list
+            const resultList = document.getElementById('bulkResultList');
+            resultList.innerHTML = '';
+            
+            processingResults.forEach(result => {
+                const item = document.createElement('div');
+                item.className = 'bulk-result-item';
+                item.innerHTML = `
+                    <span class="bulk-result-item-name">${result.originalName}</span>
+                    <span class="bulk-result-item-status ${result.success ? 'success' : 'error'}">
+                        ${result.success ? '✓ Success' : '✗ Error'}
+                    </span>
+                `;
+                resultList.appendChild(item);
+            });
+
+            // Show result section
+            document.getElementById('bulkResult').style.display = 'block';
+            document.getElementById('startProcessingBtn').disabled = false;
+            
+            if (success > 0) {
+                showStatus(`Processing complete! ${success} succeeded, ${errors} failed`, 'success');
+            } else {
+                showStatus('All videos failed to process', 'error');
+            }
+        }
+
+        // ========================
+        // Download ZIP
+        // ========================
+        async function downloadZip() {
+            if (lastCaptionData.length === 0) {
+                showStatus('No captions to download', 'error');
+                return;
+            }
+
+            // Use JSZip for client-side ZIP creation
+            const JSZip = window.JSZip;
+            
+            if (!JSZip) {
+                // If JSZip is not loaded, use server-side download
+                try {
+                    const response = await fetch('/api/bulk-caption-download', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ captions: lastCaptionData })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Download failed');
+                    }
+                    
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'captions.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    showStatus('Failed to download ZIP: ' + err.message, 'error');
+                }
+                return;
+            }
+
+            const zip = new JSZip();
+            lastCaptionData.forEach(item => {
+                zip.file(item.filename, item.content);
+            });
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'captions.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showStatus('ZIP downloaded successfully!', 'success');
+        }
+
+        // ========================
+        // Event Listeners
+        // ========================
+        setupDragDrop(bulkUploadArea, bulkFileInput, addFiles);
+
+        document.getElementById('clearAllBtn')?.addEventListener('click', clearAllFiles);
+        
+        document.getElementById('startProcessingBtn')?.addEventListener('click', startProcessing);
+
+        document.getElementById('downloadZipBtn')?.addEventListener('click', downloadZip);
+
+        document.getElementById('startOverBtn')?.addEventListener('click', () => {
+            clearAllFiles();
+        });
+
+        document.getElementById('fetchModelsBtn')?.addEventListener('click', loadModels);
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            setTimeout(() => {
+                loadModels();
+            }, 300);
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</body>
+</html>

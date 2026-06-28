@@ -11,6 +11,25 @@
         <header>
             <h1>📹 Video Selection</h1>
             <p>Upload a video or select one from the library below</p>
+            
+            <!-- Navigation Links -->
+            <nav style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="/caption" class="nav-link" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: transform 0.2s;">
+                    🤖 Single Video Caption
+                </a>
+                <a href="/bulk-caption" class="nav-link" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: transform 0.2s;">
+                    📦 Bulk Caption (Multiple Videos)
+                </a>
+                <a href="/crop" class="nav-link" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: transform 0.2s;">
+                    ✂️ Crop Video
+                </a>
+            </nav>
+            
+            <style>
+                .nav-link:hover {
+                    transform: translateY(-2px);
+                }
+            </style>
         </header>
 
         <!-- Upload Section -->
